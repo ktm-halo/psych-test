@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bộ Đánh Giá Tâm Lý & Đa Dạng Thần Kinh Toàn Diện</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Lora for clinical editorial clarity -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Lora', 'Georgia', 'serif'],
+          },
+          colors: {
+            cream: '#FAF9F6',
+            surface: '#FFFFFF',
+            subtle: '#F4F2EC',
+            ink: '#18181B',
+            muted: '#52525B',
+            tealclinical: {
+              DEFAULT: '#0F766E',
+              dark: '#115E59',
+              light: '#F0FDFA',
+              border: '#99F6E4'
+            },
+            amberwarm: {
+              DEFAULT: '#B45309',
+              dark: '#92400E',
+              light: '#FFFBEB',
+              border: '#FDE68A'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #FAF9F6;
+      color: #18181B;
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F4F2EC;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #D4D4D8;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #A1A1AA;
+    }
+    .radio-pill {
+      transition: all 0.14s ease;
+    }
+    .radio-pill:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Toast Notification Banner (Replaces alert) -->
+  <div id="toast-banner" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-ink text-white px-4 py-3 rounded-xl shadow-lg border border-zinc-700 flex items-center gap-3 text-sm">
+    <span id="toast-icon" class="text-emerald-400 font-bold">✓</span>
+    <span id="toast-message">Đã sao chép báo cáo kết quả vào bộ nhớ tạm!</span>
+  </div>
+
+  <!-- Top Sticky Header -->
+  <header class="sticky top-0 z-40 bg-[#FAF9F6]/95 backdrop-blur border-b border-zinc-200/90">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-tealclinical-light text-tealclinical border border-tealclinical-border">
+              8 Công Cụ Chuẩn Hóa
+            </span>
+            <span class="text-xs text-muted font-medium">Nhân cách nền → Sàng lọc tiền lâm sàng → Tổng hợp</span>
+          </div>
+          <h1 class="font-serif text-xl sm:text-2xl font-bold text-ink tracking-tight mt-1">
+            Hệ Thống Đánh Giá Tâm Lý & Đa Dạng Thần Kinh Toàn Diện
+          </h1>
+        </div>
+
+        <!-- Utility Actions: Sample Fill & Two-Step Reset -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="fillSampleProfile()" class="px-3 py-2 rounded-xl text-xs font-medium bg-white hover:bg-subtle text-ink border border-zinc-300 shadow-xs transition cursor-pointer">
+            Điền mẫu thử nghiệm
+          </button>
+          <div id="reset-container" class="inline-flex items-center">
+            <button type="button" id="btn-reset-init" onclick="promptReset()" class="px-3 py-2 rounded-xl text-xs font-medium bg-white hover:bg-red-50 text-zinc-600 hover:text-red-700 border border-zinc-300 transition cursor-pointer">
+              Đặt lại tất cả
+            </button>
+            <div id="reset-confirm-group" class="hidden items-center gap-1.5 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-xl">
+              <span class="text-xs text-red-800 font-medium">Xóa toàn bộ?</span>
+              <button type="button" onclick="confirmReset()" class="px-2 py-0.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 cursor-pointer">Xác nhận</button>
+              <button type="button" onclick="cancelReset()" class="px-2 py-0.5 rounded-lg bg-white text-zinc-700 text-xs border border-zinc-300 hover:bg-zinc-100 cursor-pointer">Hủy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Progress Bar -->
+      <div class="mt-3 flex items-center gap-3">
+        <div class="flex-1 h-2 bg-zinc-200/80 rounded-full overflow-hidden">
+          <div id="global-progress-bar" class="h-full bg-tealclinical rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <span id="global-progress-text" class="text-xs font-semibold text-tealclinical tabular-nums whitespace-nowrap">
+          Tiến độ: 0/193 mục (0%)
+        </span>
+      </div>
+
+      <!-- 7-Module Navigation Tabs (Personality First -> Clinical Screeners -> Synthesis) -->
+      <nav aria-label="Các mô-đun đánh giá" class="mt-3 flex overflow-x-auto gap-1.5 pb-1 no-scrollbar">
+        <button type="button" data-tab="m0" onclick="switchTab('m0')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border transition cursor-pointer flex items-center gap-2">
+          <span>1. Big 5 & MBTI</span>
+          <span id="badge-m0" class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-600">0/110</span>
+        </button>
+        <button type="button" data-tab="m1" onclick="switchTab('m1')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border transition cursor-pointer flex items-center gap-2">
+          <span>2. DIVA-5 (ADHD)</span>
+          <span id="badge-m1" class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-600">0/18</span>
+        </button>
+        <button type="button" data-tab="m2" onclick="switchTab('m2')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border transition cursor-pointer flex items-center gap-2">
+          <span>3. MIGDAS-2 (Tự kỷ)</span>
+          <span id="badge-m2" class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-600">0/25</span>
+        </button>
+        <button type="button" data-tab="m3" onclick="switchTab('m3')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border transition cursor-pointer flex items-center gap-2">
+          <span>4. PHQ-9 & GAD-7</span>
+          <span id="badge-m3" class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-600">0/16</span>
+        </button>
+        <button type="button" data-tab="m4" onclick="switchTab('m4')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border transition cursor-pointer flex items-center gap-2">
+          <span>5. Giấc ngủ & Khí sắc</span>
+          <span id="badge-m4" class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-600">0/12</span>
+        </button>
+        <button type="button" data-tab="m5" onclick="switchTab('m5')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border transition cursor-pointer flex items-center gap-2">
+          <span>6. Gắn bó (ECR-R)</span>
+          <span id="badge-m5" class="px-1.5 py-0.5 rounded-md text-[11px] font-semibold bg-zinc-100 text-zinc-600">0/12</span>
+        </button>
+        <button type="button" data-tab="m6" onclick="switchTab('m6')" class="tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition cursor-pointer flex items-center gap-2">
+          <span>7. Báo Cáo Tổng Hợp</span>
+          <span class="w-2 h-2 rounded-full bg-amberwarm"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- Clinical Disclaimer Banner -->
+    <div class="mb-6 bg-amberwarm-light border border-amberwarm-border rounded-2xl p-4 flex items-start gap-3">
+      <div class="w-6 h-6 rounded-full bg-amberwarm text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">i</div>
+      <div class="text-xs sm:text-sm text-amber-950 leading-relaxed">
+        <strong class="font-semibold">Quy trình đánh giá 3 giai đoạn:</strong> Bắt đầu bằng việc xác lập cấu trúc nhân cách nền qua <strong>Big Five (50 câu) & MBTI (60 câu)</strong> ở Mô-đun 1, sau đó thực hiện các bộ sàng lọc lâm sàng & đa dạng thần kinh (<strong>DIVA-5, MIGDAS-2, PHQ-9, GAD-7, ISI-7, MDQ-5, ECR-R-12</strong>). Hệ thống sẽ tự động đối chiếu sự tương tác giữa đặc điểm nhân cách bẩm sinh và các chỉ báo tâm lý ở Mô-đun 7.
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 0: BASELINE PERSONALITY (BIG FIVE 50 & MBTI 60)    -->
+    <!-- ========================================================= -->
+    <section id="panel-m0" class="module-panel space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="pb-4 border-b border-zinc-200">
+          <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Mô-đun 1 • Giai Đoạn 1: Xác Lập Cấu Trúc Nhân Cách Nền</span>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-ink mt-1">Trắc Nghiệm Big Five (IPIP-50) & Khí Chất MBTI (60 Câu)</h2>
+          <p class="text-sm text-muted mt-1">
+            Hãy đánh giá mức độ đúng của từng phát biểu đối với <strong>con người thật của bạn ở hiện tại</strong> trước khi bước vào các bài sàng lọc tâm lý chuyên sâu.
+          </p>
+        </div>
+
+        <!-- Sub-tab Switcher: Big Five (50) vs MBTI (60) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-subtle p-3 rounded-2xl border border-zinc-200/80">
+          <div class="flex flex-wrap gap-2">
+            <button type="button" id="subtab-big5" onclick="setPersonalitySubTab('big5')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-tealclinical text-white shadow-xs transition cursor-pointer flex items-center gap-2">
+              <span>Phần A: Big Five (IPIP-50)</span>
+              <span id="badge-sub-big5" class="px-2 py-0.5 rounded-md text-[11px] bg-white/20 text-white font-bold">0/50</span>
+            </button>
+            <button type="button" id="subtab-mbti" onclick="setPersonalitySubTab('mbti')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white text-ink border border-zinc-200 hover:bg-zinc-100 transition cursor-pointer flex items-center gap-2">
+              <span>Phần B: Khí chất MBTI</span>
+              <span id="badge-sub-mbti" class="px-2 py-0.5 rounded-md text-[11px] bg-zinc-100 text-zinc-700 font-bold">0/60</span>
+            </button>
+          </div>
+
+          <!-- Live Mini Readout -->
+          <div id="m0-live-readout" class="text-xs text-ink font-medium px-2">
+            Tạm tính: <strong class="text-muted">Chưa có dữ liệu</strong> • Hãy chọn mức điểm (1–5) bên dưới
+          </div>
+        </div>
+
+        <!-- 5-Point Likert Scale Legend -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-[#FAF9F6] p-3 rounded-xl border border-zinc-200 text-xs">
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-white border border-zinc-300 flex items-center justify-center font-bold">1</span><span>Hoàn toàn không đúng</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-white border border-zinc-300 flex items-center justify-center font-bold">2</span><span>Phần lớn không đúng</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-white border border-zinc-300 flex items-center justify-center font-bold">3</span><span>Trung lập / Không chắc</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-tealclinical-light border border-tealclinical text-tealclinical flex items-center justify-center font-bold">4</span><span>Phần lớn đúng</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-tealclinical text-white flex items-center justify-center font-bold">5</span><span>Hoàn toàn đúng</span></div>
+        </div>
+
+        <!-- Paginated Questions Container (10 items/page) -->
+        <div id="personality-test-list" class="space-y-2.5"></div>
+
+        <!-- Pagination & Next Module Controls -->
+        <div class="pt-3 border-t border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5" id="personality-pagination-bar"></div>
+          <div class="flex items-center gap-2 self-end sm:self-auto">
+            <button type="button" id="btn-ptest-next-step" onclick="handlePersonalityNextStep()" class="px-4 py-2 rounded-xl bg-tealclinical hover:bg-tealclinical-dark text-white text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer">
+              Trang tiếp theo →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 1: DIVA-5 EXPANDED (ADHD ADULTHOOD & CHILDHOOD)    -->
+    <!-- ========================================================= -->
+    <section id="panel-m1" class="module-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-zinc-200">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Mô-đun 2 • Chuẩn DSM-5 / DIVA-5 Mở Rộng</span>
+            <h2 class="font-serif text-xl sm:text-2xl font-bold text-ink mt-1">Đánh Giá Tăng Động Giảm Chú Ý (ADHD) — Hai Mốc Thời Gian</h2>
+            <p class="text-sm text-muted mt-1">
+              Đánh giá tần suất xuất hiện của từng tiêu chí ở <strong>Người lớn (hiện tại, kéo dài ≥ 6 tháng)</strong> và <strong>Thời thơ ấu (5–12 tuổi)</strong>. Mức <strong>3 (Thường xuyên)</strong> và <strong>4 (Luôn luôn)</strong> được tính là đạt ngưỡng triệu chứng DSM-5.
+            </p>
+          </div>
+
+          <!-- Filter Sub-domains -->
+          <div class="flex flex-wrap gap-1.5 shrink-0">
+            <button type="button" onclick="setDivaFilter('all')" id="diva-filter-all" class="diva-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-tealclinical text-white cursor-pointer">
+              Tất cả (18 tiêu chí)
+            </button>
+            <button type="button" onclick="setDivaFilter('A')" id="diva-filter-A" class="diva-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-subtle text-ink hover:bg-zinc-200 cursor-pointer">
+              A1. Giảm chú ý (9)
+            </button>
+            <button type="button" onclick="setDivaFilter('HI')" id="diva-filter-HI" class="diva-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-subtle text-ink hover:bg-zinc-200 cursor-pointer">
+              A2. Tăng động / Bốc đồng (9)
+            </button>
+          </div>
+        </div>
+
+        <!-- Legend Bar -->
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2 bg-subtle p-3 rounded-xl text-xs">
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-white border border-zinc-300 flex items-center justify-center font-bold">0</span><span>Không bao giờ</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-white border border-zinc-300 flex items-center justify-center font-bold">1</span><span>Hiếm khi</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-white border border-zinc-300 flex items-center justify-center font-bold">2</span><span>Thỉnh thoảng</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-tealclinical-light border border-tealclinical text-tealclinical flex items-center justify-center font-bold">3</span><span class="font-semibold text-tealclinical">Thường xuyên (Đạt ngưỡng)</span></div>
+          <div class="flex items-center gap-2"><span class="w-5 h-5 rounded-md bg-tealclinical text-white flex items-center justify-center font-bold">4</span><span class="font-semibold text-tealclinical">Luôn luôn (Đạt ngưỡng)</span></div>
+        </div>
+
+        <!-- 18 DIVA-5 Criteria Container -->
+        <div id="diva-criteria-list" class="mt-5 space-y-4"></div>
+      </div>
+
+      <!-- Criterion B & Criterion C/D (Onset & 5 Functional Impairment Domains) -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-5">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amberwarm">DIVA-5 Phần 3 • Tiêu Chí Khởi Phát & Suy Giảm Chức Năng</span>
+          <h3 class="font-serif text-lg sm:text-xl font-bold text-ink mt-1">Tiêu Chí B (Mốc Khởi Phát) & Tiêu Chí C/D (5 Lĩnh Vực Ảnh Hưởng)</h3>
+        </div>
+
+        <!-- Criterion B -->
+        <div class="p-4 rounded-xl bg-subtle border border-zinc-200/80 space-y-3">
+          <p class="text-sm font-semibold text-ink">
+            Tiêu chí B: Bạn có luôn mang những đặc điểm giảm chú ý và/hoặc tăng động – bốc đồng này từ thời thơ ấu (nhiều biểu hiện xuất hiện trước năm 12 tuổi) không?
+          </p>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" id="btn-onset-yes" onclick="setDivaOnset(true)" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border border-zinc-300 bg-white hover:bg-tealclinical-light transition cursor-pointer">
+              Có — Xuất hiện từ trước 12 tuổi
+            </button>
+            <button type="button" id="btn-onset-no" onclick="setDivaOnset(false)" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border border-zinc-300 bg-white hover:bg-amberwarm-light transition cursor-pointer">
+              Không rõ / Bắt đầu muộn hơn
+            </button>
+            <div id="onset-age-wrapper" class="hidden items-center gap-2">
+              <label for="onset-age-input" class="text-xs text-muted">Độ tuổi bắt đầu nhận thấy:</label>
+              <input type="number" id="onset-age-input" min="1" max="80" placeholder="VD: 15" oninput="state.divaOnsetAge = this.value; updateAll()" class="w-20 px-2.5 py-1.5 rounded-lg border border-zinc-300 text-xs bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Criterion C/D: 5 Domains -->
+        <div>
+          <p class="text-sm text-muted mb-3">
+            Đánh dấu những lĩnh vực cuộc sống mà các đặc điểm trên gây khó khăn rõ rệt (DSM-5 yêu cầu ảnh hưởng ở <strong>≥ 2 lĩnh vực</strong>):
+          </p>
+          <div id="diva-impairment-list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+        </div>
+
+        <!-- Compensation / Masking Checkboxes (from DIVA-5 p.15) -->
+        <div class="p-4 rounded-xl bg-tealclinical-light/60 border border-tealclinical-border space-y-2.5">
+          <p class="text-xs font-bold uppercase tracking-wider text-tealclinical">Cơ Chế Bù Trừ & Che Lấp Triệu Chứng (Ghi nhận lâm sàng DIVA-5)</p>
+          <label class="flex items-start gap-2.5 text-sm text-ink cursor-pointer">
+            <input type="checkbox" id="comp-iq" onchange="state.divaCompIQ = this.checked; updateAll()" class="mt-1 rounded text-tealclinical focus:ring-tealclinical" />
+            <span>Mức độ ảnh hưởng bên ngoài bị hạn chế nhờ <strong>bù trừ bằng trí tuệ / khả năng tư duy nhanh</strong> (nhưng phải nỗ lực tinh thần gấp bội, dễ kiệt sức ngầm).</span>
+          </label>
+          <label class="flex items-start gap-2.5 text-sm text-ink cursor-pointer">
+            <input type="checkbox" id="comp-structure" onchange="state.divaCompStructure = this.checked; updateAll()" class="mt-1 rounded text-tealclinical focus:ring-tealclinical" />
+            <span>Mức độ ảnh hưởng bị hạn chế nhờ <strong>cấu trúc hỗ trợ từ bên ngoài</strong> (gia đình nhắc nhở, môi trường học tập/làm việc có người giám sát sát sao).</span>
+          </label>
+        </div>
+
+        <div class="flex justify-between items-center pt-2">
+          <button type="button" onclick="switchTab('m0')" class="px-4 py-2 rounded-xl bg-subtle hover:bg-zinc-200 text-ink text-sm font-medium transition cursor-pointer">
+            ← Quay lại Mô-đun 1: Big 5 & MBTI
+          </button>
+          <button type="button" onclick="switchTab('m2')" class="px-5 py-2.5 rounded-xl bg-tealclinical hover:bg-tealclinical-dark text-white text-sm font-semibold shadow-xs transition cursor-pointer">
+            Tiếp tục sang Mô-đun 3: MIGDAS-2 →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 2: MIGDAS-2 & 8 SENSORY CHANNELS (AUTISM SPECTRUM) -->
+    <!-- ========================================================= -->
+    <section id="panel-m2" class="module-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs">
+        <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Mô-đun 3 • Tổng Hợp MIGDAS-2 & Hồ Sơ Cảm Giác</span>
+        <h2 class="font-serif text-xl sm:text-2xl font-bold text-ink mt-1">Đánh Giá Đặc Điểm Phổ Tự Kỷ, Giao Tiếp & Xử Lý Giác Quan</h2>
+        <p class="text-sm text-muted mt-1">
+          Đánh giá mức độ đúng của 25 chỉ báo cốt lõi từ bộ phỏng vấn MIGDAS-2 trên thang 4 mức: <strong>0: Không bao giờ</strong> | <strong>1: Thỉnh thoảng</strong> | <strong>2: Thường xuyên</strong> | <strong>3: Luôn luôn</strong>.
+        </p>
+
+        <div id="migdas-list" class="mt-5 space-y-6"></div>
+      </div>
+
+      <!-- 8 Sensory Modalities Interactive Map -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amberwarm">Bản Đồ 8 Kênh Giác Quan (MIGDAS-2 Sensory Profile)</span>
+          <h3 class="font-serif text-lg sm:text-xl font-bold text-ink mt-1">Hồ Sơ Phản Ứng Giác Quan Cá Nhân</h3>
+          <p class="text-sm text-muted mt-1">
+            Chọn trạng thái phản ứng đặc trưng của bạn trên từng kênh cảm giác (có thể chọn <strong>Quá nhạy cảm</strong>, <strong>Tìm kiếm cảm giác</strong>, hoặc để mặc định <strong>Bình thường</strong>):
+          </p>
+        </div>
+
+        <div id="sensory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
+        <div class="flex justify-between items-center pt-3">
+          <button type="button" onclick="switchTab('m1')" class="px-4 py-2 rounded-xl bg-subtle hover:bg-zinc-200 text-ink text-sm font-medium transition cursor-pointer">
+            ← Quay lại Mô-đun 2: DIVA-5
+          </button>
+          <button type="button" onclick="switchTab('m3')" class="px-5 py-2.5 rounded-xl bg-tealclinical hover:bg-tealclinical-dark text-white text-sm font-semibold shadow-xs transition cursor-pointer">
+            Tiếp tục sang Mô-đun 4: PHQ-9 & GAD-7 →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 3: DIFFERENTIAL & COMORBIDITY (PHQ-9 & GAD-7)      -->
+    <!-- ========================================================= -->
+    <section id="panel-m3" class="module-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs">
+        <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Mô-đun 4 • Sàng Lọc Chẩn Đoán Phân Biệt (Khuyến Nghị DIVA-5)</span>
+        <h2 class="font-serif text-xl sm:text-2xl font-bold text-ink mt-1">Khí Sắc (PHQ-9) & Lo Âu Lan Tỏa (GAD-7)</h2>
+        <p class="text-sm text-muted mt-1">
+          Trong <strong>2 tuần vừa qua</strong>, bạn thường xuyên bị làm phiền bởi những vấn đề sau đây ở mức độ nào? (<strong>0: Không bao giờ</strong> | <strong>1: Vài ngày</strong> | <strong>2: Hơn nửa số ngày</strong> | <strong>3: Gần như mỗi ngày / Luôn luôn</strong>).
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- PHQ-9 -->
+          <div class="border border-zinc-200 rounded-2xl p-4 sm:p-5 bg-[#FAF9F6]/60">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-200">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-ink">Thang Đo Khí Sắc PHQ-9</h3>
+                <p class="text-xs text-muted">9 tiêu chí đánh giá mức độ trầm cảm & suy giảm năng lượng</p>
+              </div>
+              <span id="phq9-live-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-zinc-300 text-ink">0 / 27</span>
+            </div>
+            <div id="phq9-list" class="mt-4 space-y-3.5"></div>
+          </div>
+
+          <!-- GAD-7 -->
+          <div class="border border-zinc-200 rounded-2xl p-4 sm:p-5 bg-[#FAF9F6]/60">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-200">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-ink">Thang Đo Lo Âu GAD-7</h3>
+                <p class="text-xs text-muted">7 tiêu chí đánh giá mức độ căng thẳng & lo âu lan tỏa</p>
+              </div>
+              <span id="gad7-live-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-zinc-300 text-ink">0 / 21</span>
+            </div>
+            <div id="gad7-list" class="mt-4 space-y-3.5"></div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-5">
+          <button type="button" onclick="switchTab('m2')" class="px-4 py-2 rounded-xl bg-subtle hover:bg-zinc-200 text-ink text-sm font-medium transition cursor-pointer">
+            ← Quay lại Mô-đun 3: MIGDAS-2
+          </button>
+          <button type="button" onclick="switchTab('m4')" class="px-5 py-2.5 rounded-xl bg-tealclinical hover:bg-tealclinical-dark text-white text-sm font-semibold shadow-xs transition cursor-pointer">
+            Tiếp tục sang Mô-đun 5: Giấc ngủ & Khí sắc →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 4: SLEEP (ISI-7) & MOOD ELEVATION (MDQ-5)          -->
+    <!-- ========================================================= -->
+    <section id="panel-m4" class="module-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-6">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Mô-đun 5 • Nhịp Sinh Học & Dao Động Năng Lượng</span>
+          <h2 class="font-serif text-xl sm:text-2xl font-bold text-ink mt-1">Chỉ Số Mất Ngủ (ISI-7) & Sàng Lọc Dao Động Hưng Cảm Nhẹ (MDQ-5)</h2>
+          <p class="text-sm text-muted mt-1">
+            Rối loạn giấc ngủ và lệch pha nhịp sinh học rất phổ biến ở nhóm đa dạng thần kinh và có thể làm trầm trọng thêm triệu chứng giảm chú ý. Thang MDQ giúp phân biệt năng lượng cao có tính giai đoạn với đặc điểm bẩm sinh kéo dài.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- ISI-7 -->
+          <div class="border border-zinc-200 rounded-2xl p-4 sm:p-5 bg-[#FAF9F6]/60">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-200">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-ink">Chỉ Số Giấc Ngủ ISI-7</h3>
+                <p class="text-xs text-muted">Thang 0 (Không bao giờ) → 4 (Luôn luôn / Rất nặng)</p>
+              </div>
+              <span id="isi-live-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-zinc-300 text-ink">0 / 28</span>
+            </div>
+            <div id="isi-list" class="mt-4 space-y-3.5"></div>
+          </div>
+
+          <!-- MDQ-5 -->
+          <div class="border border-zinc-200 rounded-2xl p-4 sm:p-5 bg-[#FAF9F6]/60">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-200">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-ink">Sàng Lọc Giai Đoạn Năng Lượng Cao (MDQ-5)</h3>
+                <p class="text-xs text-muted">Thang 0 (Không bao giờ) → 3 (Luôn luôn)</p>
+              </div>
+              <span id="mdq-live-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-zinc-300 text-ink">0 / 15</span>
+            </div>
+            <div id="mdq-list" class="mt-4 space-y-3.5"></div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-2">
+          <button type="button" onclick="switchTab('m3')" class="px-4 py-2 rounded-xl bg-subtle hover:bg-zinc-200 text-ink text-sm font-medium transition cursor-pointer">
+            ← Quay lại Mô-đun 4: PHQ-9 & GAD-7
+          </button>
+          <button type="button" onclick="switchTab('m5')" class="px-5 py-2.5 rounded-xl bg-tealclinical hover:bg-tealclinical-dark text-white text-sm font-semibold shadow-xs transition cursor-pointer">
+            Tiếp tục sang Mô-đun 6: Gắn bó (ECR-R) →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 5: ATTACHMENT (ECR-R 12)                           -->
+    <!-- ========================================================= -->
+    <section id="panel-m5" class="module-panel hidden space-y-6">
+      <!-- Live Readout from Module 1 Personality Assessment -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-zinc-200">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Dữ Liệu Đối Chiếu Từ Mô-đun 1</span>
+            <h2 class="font-serif text-xl font-bold text-ink mt-1">Tóm Tắt Nhân Cách Nền (Big Five & MBTI)</h2>
+            <p class="text-xs text-muted mt-0.5">Được tính tự động từ bài trắc nghiệm Big Five (50 câu) và MBTI (60 câu) ở Mô-đun 1.</p>
+          </div>
+          <button type="button" onclick="switchTab('m0')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-subtle hover:bg-zinc-200 text-ink border border-zinc-300 cursor-pointer self-start">
+            ← Quay lại Mô-đun 1 để làm / chỉnh sửa
+          </button>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-subtle border border-zinc-200/80">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-muted uppercase">Mã Khí Chất MBTI (<span id="m5-mbti-progress">0/60</span>)</span>
+              <span id="disp-mbti-code" class="px-2.5 py-0.5 rounded-lg bg-tealclinical text-white text-sm font-bold">----</span>
+            </div>
+            <div id="disp-mbti-bars" class="space-y-2 text-xs"></div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-subtle border border-zinc-200/80">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-muted uppercase">5 Chiều Kích Big Five (<span id="m5-b5-progress">0/50</span>)</span>
+              <span class="text-xs text-tealclinical font-medium">Thang chuẩn hóa %</span>
+            </div>
+            <div id="disp-big5-bars" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ECR-R 12 Attachment Questionnaire -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs">
+        <span class="text-xs font-bold uppercase tracking-wider text-amberwarm">Mô-đun 6 • Thang Đo Gắn Bó Người Trưởng Thành (ECR-R-12)</span>
+        <h3 class="font-serif text-xl font-bold text-ink mt-1">Phong Cách Gắn Bó Trong Các Mối Quan Hệ Thân Thiết</h3>
+        <p class="text-sm text-muted mt-1">
+          Đánh giá mức độ trải nghiệm của bạn trong các mối quan hệ thân thiết theo thang 5 mức: <strong>1: Không bao giờ</strong> | <strong>2: Hiếm khi</strong> | <strong>3: Thỉnh thoảng</strong> | <strong>4: Thường xuyên</strong> | <strong>5: Luôn luôn</strong>.
+        </p>
+
+        <div id="ecrr-list" class="mt-5 space-y-3.5"></div>
+
+        <div class="flex justify-between items-center pt-5">
+          <button type="button" onclick="switchTab('m4')" class="px-4 py-2 rounded-xl bg-subtle hover:bg-zinc-200 text-ink text-sm font-medium transition cursor-pointer">
+            ← Quay lại Mô-đun 5: Giấc ngủ & Khí sắc
+          </button>
+          <button type="button" onclick="switchTab('m6')" class="px-5 py-2.5 rounded-xl bg-amberwarm hover:bg-amberwarm-dark text-white text-sm font-semibold shadow-xs transition cursor-pointer">
+            Xem Báo Cáo Tổng Hợp Toàn Diện (Mô-đun 7) →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODULE 6: COMPREHENSIVE SYNTHESIS DASHBOARD & EXPORT      -->
+    <!-- ========================================================= -->
+    <section id="panel-m6" class="module-panel hidden space-y-6">
+      <!-- Top Action & Summary Header -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-5 border-b border-zinc-200">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-tealclinical">Mô-đun 7 • Hồ Sơ Tích Hợp 8 Công Cụ</span>
+            <h2 class="font-serif text-2xl font-bold text-ink mt-1">Báo Cáo Tổng Hợp Nhân Cách, Tâm Lý & Đa Dạng Thần Kinh</h2>
+            <p class="text-sm text-muted mt-1">Tổng hợp đối chiếu tự động từ Big Five, MBTI, DIVA-5, MIGDAS-2, PHQ-9, GAD-7, ISI-7, MDQ-5 và ECR-R-12.</p>
+          </div>
+          <button type="button" onclick="copyFullReport()" class="px-5 py-3 rounded-xl bg-tealclinical hover:bg-tealclinical-dark text-white text-sm font-semibold shadow-sm transition cursor-pointer flex items-center justify-center gap-2 shrink-0">
+            <span>📋 Sao chép Toàn bộ Báo cáo Kết quả</span>
+          </button>
+        </div>
+
+        <!-- 4 Executive KPI Cards -->
+        <div id="report-kpi-grid" class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"></div>
+      </div>
+
+      <!-- Detailed Report Grid: DIVA-5 & MIGDAS-2 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- DIVA-5 Clinical Summary Card -->
+        <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-lg font-bold text-ink">1. Kết Quả DIVA-5 (ADHD Hai Giai Đoạn)</h3>
+            <span id="rep-diva-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-tealclinical-light text-tealclinical">Đang cập nhật</span>
+          </div>
+          <div id="rep-diva-details" class="space-y-3 text-sm"></div>
+        </div>
+
+        <!-- MIGDAS-2 Clinical Summary Card -->
+        <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-lg font-bold text-ink">2. Kết Quả MIGDAS-2 & Giác Quan</h3>
+            <span id="rep-migdas-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-tealclinical-light text-tealclinical">0 / 75</span>
+          </div>
+          <div id="rep-migdas-details" class="space-y-3 text-sm"></div>
+        </div>
+      </div>
+
+      <!-- Detailed Report Grid: Differential Screeners & Attachment Matrix -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Differential Diagnosis Screeners -->
+        <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+          <h3 class="font-serif text-lg font-bold text-ink">3. Chẩn Đoán Phân Biệt & Yếu Tố Đi Kèm</h3>
+          <div id="rep-differential-details" class="space-y-3 text-sm"></div>
+        </div>
+
+        <!-- Attachment Quadrant & Personality -->
+        <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif text-lg font-bold text-ink">4. Ma Trận Gắn Bó & Nhân Cách Nền</h3>
+            <span id="rep-attach-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amberwarm-light text-amberwarm">Chưa hoàn tất</span>
+          </div>
+          <div id="rep-attachment-details" class="space-y-3 text-sm"></div>
+        </div>
+      </div>
+
+      <!-- Cross-Domain Automated Synthesis -->
+      <div class="bg-white rounded-2xl border border-tealclinical-border p-5 sm:p-6 shadow-xs space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-tealclinical text-white">Tổng Hợp Giao Thoa</span>
+          <h3 class="font-serif text-lg font-bold text-ink">Phân Tích Tương Tác Giữa Các Hệ Thống Tâm Lý</h3>
+        </div>
+        <div id="rep-synthesis-narrative" class="space-y-2.5 text-sm text-ink leading-relaxed"></div>
+      </div>
+
+      <!-- Raw Export Text Preview -->
+      <div class="bg-white rounded-2xl border border-zinc-200/90 p-5 sm:p-6 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-muted">Bản Xuất Văn Bản Chuẩn Hóa (Sẵn sàng sao chép & dán vào hội thoại)</h3>
+          <button type="button" onclick="copyFullReport()" class="px-3.5 py-1.5 rounded-lg bg-ink hover:bg-zinc-800 text-white text-xs font-semibold cursor-pointer">
+            Sao chép văn bản
+          </button>
+        </div>
+        <textarea id="export-textarea" readonly rows="14" class="w-full p-3.5 rounded-xl bg-subtle border border-zinc-300 font-mono text-xs text-ink leading-relaxed focus:outline-none"></textarea>
+      </div>
+    </section>
+  </main>
+
+  <!-- Hidden textarea fallback for clipboard copy in restricted iframes -->
+  <textarea id="clipboard-helper" class="fixed -left-[9999px] top-0 opacity-0" aria-hidden="true"></textarea>
+
+  <script>
+    // =========================================================================
+    // 1. CLINICAL & PSYCHOMETRIC DATASETS
+    // =========================================================================
+
+    const BIG5_ITEMS = [
+      { id: 1,  trait: "E", dir: 1,  text: "Tôi thường là linh hồn của các bữa tiệc / cuộc vui." },
+      { id: 2,  trait: "A", dir: -1, text: "Tôi ít khi bận tâm đến người khác." },
+      { id: 3,  trait: "C", dir: 1,  text: "Tôi luôn chuẩn bị kỹ lưỡng cho mọi việc." },
+      { id: 4,  trait: "N", dir: 1,  text: "Tôi dễ bị căng thẳng (stress)." },
+      { id: 5,  trait: "O", dir: 1,  text: "Tôi có vốn từ vựng phong phú." },
+      { id: 6,  trait: "E", dir: -1, text: "Tôi không nói nhiều." },
+      { id: 7,  trait: "A", dir: 1,  text: "Tôi có hứng thú và quan tâm đến mọi người." },
+      { id: 8,  trait: "C", dir: -1, text: "Tôi hay để đồ đạc bừa bãi xung quanh." },
+      { id: 9,  trait: "N", dir: -1, text: "Phần lớn thời gian tôi cảm thấy thư giãn, thoải mái." },
+      { id: 10, trait: "O", dir: -1, text: "Tôi gặp khó khăn trong việc hiểu các ý tưởng trừu tượng." },
+      { id: 11, trait: "E", dir: 1,  text: "Tôi cảm thấy thoải mái khi ở cạnh mọi người." },
+      { id: 12, trait: "A", dir: -1, text: "Tôi hay buông lời xúc phạm hoặc làm tổn thương người khác." },
+      { id: 13, trait: "C", dir: 1,  text: "Tôi chú ý đến từng chi tiết nhỏ." },
+      { id: 14, trait: "N", dir: 1,  text: "Tôi hay lo lắng về nhiều thứ." },
+      { id: 15, trait: "O", dir: 1,  text: "Tôi có trí tưởng tượng sống động." },
+      { id: 16, trait: "E", dir: -1, text: "Tôi thích đứng ở phía sau, ít gây chú ý." },
+      { id: 17, trait: "A", dir: 1,  text: "Tôi dễ đồng cảm với cảm xúc của người khác." },
+      { id: 18, trait: "C", dir: -1, text: "Tôi hay làm mọi thứ rối tung lên." },
+      { id: 19, trait: "N", dir: -1, text: "Tôi hiếm khi cảm thấy buồn bã, chán nản." },
+      { id: 20, trait: "O", dir: -1, text: "Tôi không hứng thú với những ý tưởng trừu tượng." },
+      { id: 21, trait: "E", dir: 1,  text: "Tôi thường là người chủ động bắt chuyện." },
+      { id: 22, trait: "A", dir: -1, text: "Tôi không quan tâm đến vấn đề của người khác." },
+      { id: 23, trait: "C", dir: 1,  text: "Tôi thường hoàn thành các công việc lặt vặt ngay lập tức." },
+      { id: 24, trait: "N", dir: 1,  text: "Tôi dễ bị xáo trộn tâm lý hoặc mất bình tĩnh." },
+      { id: 25, trait: "O", dir: 1,  text: "Tôi thường có những ý tưởng xuất sắc." },
+      { id: 26, trait: "E", dir: -1, text: "Tôi có rất ít điều để nói." },
+      { id: 27, trait: "A", dir: 1,  text: "Tôi có trái tim mềm yếu, dễ mủi lòng." },
+      { id: 28, trait: "C", dir: -1, text: "Tôi thường quên đặt đồ đạc lại đúng chỗ cũ." },
+      { id: 29, trait: "N", dir: 1,  text: "Tôi dễ nổi cáu hoặc bực bội." },
+      { id: 30, trait: "O", dir: -1, text: "Tôi không có trí tưởng tượng tốt." },
+      { id: 31, trait: "E", dir: 1,  text: "Tôi trò chuyện với rất nhiều người khác nhau trong các buổi tụ họp." },
+      { id: 32, trait: "A", dir: -1, text: "Tôi không thực sự quan tâm đến người khác." },
+      { id: 33, trait: "C", dir: 1,  text: "Tôi thích sự ngăn nắp, trật tự." },
+      { id: 34, trait: "N", dir: 1,  text: "Tâm trạng của tôi thay đổi rất thất thường." },
+      { id: 35, trait: "O", dir: 1,  text: "Tôi nắm bắt và hiểu mọi thứ rất nhanh." },
+      { id: 36, trait: "E", dir: -1, text: "Tôi không thích thu hút sự chú ý về phía mình." },
+      { id: 37, trait: "A", dir: 1,  text: "Tôi sẵn sàng dành thời gian để giúp đỡ người khác." },
+      { id: 38, trait: "C", dir: -1, text: "Tôi hay trốn tránh hoặc lơ là trách nhiệm của mình." },
+      { id: 39, trait: "N", dir: 1,  text: "Tôi thường xuyên trải qua những đợt thay đổi tâm trạng đột ngột." },
+      { id: 40, trait: "O", dir: 1,  text: "Tôi hay sử dụng những từ ngữ khó hoặc chuyên sâu." },
+      { id: 41, trait: "E", dir: 1,  text: "Tôi không ngại trở thành tâm điểm của sự chú ý." },
+      { id: 42, trait: "A", dir: 1,  text: "Tôi dễ cảm nhận được cảm xúc của người khác." },
+      { id: 43, trait: "C", dir: 1,  text: "Tôi tuân thủ theo lịch trình, kế hoạch đã đề ra." },
+      { id: 44, trait: "N", dir: 1,  text: "Tôi dễ bị kích động hoặc cáu gắt." },
+      { id: 45, trait: "O", dir: 1,  text: "Tôi dành nhiều thời gian để suy ngẫm, chiêm nghiệm về mọi thứ." },
+      { id: 46, trait: "E", dir: -1, text: "Tôi thường im lặng khi ở cạnh người lạ." },
+      { id: 47, trait: "A", dir: 1,  text: "Tôi biết cách làm cho mọi người cảm thấy thoải mái, dễ chịu." },
+      { id: 48, trait: "C", dir: 1,  text: "Tôi rất khắt khe và chỉn chu trong công việc." },
+      { id: 49, trait: "N", dir: 1,  text: "Tôi thường xuyên cảm thấy buồn bã, u sầu." },
+      { id: 50, trait: "O", dir: 1,  text: "Tôi luôn tràn đầy ý tưởng." }
+    ];
+
+    const MBTI_ITEMS = [
+      { id: 1,  axis: "EI", pole: "E", text: "Tôi cảm thấy tràn đầy năng lượng sau khi giao lưu, trò chuyện với nhiều người." },
+      { id: 2,  axis: "EI", pole: "I", text: "Tôi thường suy nghĩ kỹ trong đầu trước khi nói ra thành lời." },
+      { id: 3,  axis: "EI", pole: "E", text: "Tôi dễ dàng bắt chuyện với người lạ trong các sự kiện hoặc lớp học." },
+      { id: 4,  axis: "EI", pole: "I", text: "Sau một ngày dài tiếp xúc xã hội, tôi cần ở một mình để nạp lại năng lượng." },
+      { id: 5,  axis: "EI", pole: "E", text: "Tôi thích làm việc nhóm và trao đổi ý tưởng trực tiếp hơn là làm độc lập." },
+      { id: 6,  axis: "EI", pole: "I", text: "Tôi chỉ mở lòng và chia sẻ sâu sắc với một nhóm rất nhỏ bạn thân." },
+      { id: 7,  axis: "EI", pole: "E", text: "Tôi thường suy nghĩ bằng cách nói ra thành lời hoặc thảo luận với người khác." },
+      { id: 8,  axis: "EI", pole: "I", text: "Tôi thích những không gian yên tĩnh, ít bị gián đoạn khi tập trung làm việc." },
+      { id: 9,  axis: "EI", pole: "E", text: "Tôi chủ động mở rộng mạng lưới quan hệ xã hội của mình." },
+      { id: 10, axis: "EI", pole: "I", text: "Tôi thường quan sát và lắng nghe nhiều hơn là phát biểu trong cuộc họp." },
+      { id: 11, axis: "EI", pole: "E", text: "Tôi cảm thấy bứt rứt nếu ở một mình quá lâu mà không tương tác với ai." },
+      { id: 12, axis: "EI", pole: "I", text: "Tôi thích nhắn tin hoặc viết ra hơn là gọi điện thoại trực tiếp." },
+      { id: 13, axis: "EI", pole: "E", text: "Tôi dễ bị cuốn vào bầu không khí sôi động của đám đông." },
+      { id: 14, axis: "EI", pole: "I", text: "Tôi thường cân nhắc rất kỹ trước khi nhận lời tham gia một buổi tụ tập đông người." },
+      { id: 15, axis: "EI", pole: "E", text: "Tôi thường là người khuấy động không khí khi nhóm rơi vào im lặng." },
+      { id: 16, axis: "SN", pole: "S", text: "Tôi tin tưởng vào kinh nghiệm thực tế và dữ liệu cụ thể hơn là linh cảm." },
+      { id: 17, axis: "SN", pole: "N", text: "Tôi thường bị cuốn hút bởi những ý tưởng mới lạ, trừu tượng và mang tính khái niệm." },
+      { id: 18, axis: "SN", pole: "S", text: "Tôi chú ý rất kỹ đến các chi tiết hiện hữu xung quanh mình." },
+      { id: 19, axis: "SN", pole: "N", text: "Tôi hay suy nghĩ về bức tranh toàn cảnh và các khả năng có thể xảy ra trong tương lai." },
+      { id: 20, axis: "SN", pole: "S", text: "Tôi thích các hướng dẫn rõ ràng, từng bước một hơn là tự mò mẫm theo ý tưởng chung." },
+      { id: 21, axis: "SN", pole: "N", text: "Tôi thường nhìn ra mối liên hệ ẩn giấu giữa những sự việc tưởng như không liên quan." },
+      { id: 22, axis: "SN", pole: "S", text: "Tôi tập trung vào thực tế hiện tại hơn là mơ mộng về những viễn cảnh xa vời." },
+      { id: 23, axis: "SN", pole: "N", text: "Tôi thích thử nghiệm những cách tiếp cận độc đáo thay vì làm theo lối mòn an toàn." },
+      { id: 24, axis: "SN", pole: "S", text: "Khi mô tả một sự việc, tôi thường kể đúng trình tự những gì đã diễn ra." },
+      { id: 25, axis: "SN", pole: "N", text: "Tôi hay dùng phép ẩn dụ, ví von hoặc liên tưởng khi giải thích một vấn đề." },
+      { id: 26, axis: "SN", pole: "S", text: "Tôi đánh giá cao tính ứng dụng thực tiễn ngay lập tức của một giải pháp." },
+      { id: 27, axis: "SN", pole: "N", text: "Tôi thường đặt câu hỏi \"Điều gì sẽ xảy ra nếu...\" để khám phá các kịch bản khác nhau." },
+      { id: 28, axis: "SN", pole: "S", text: "Tôi nhớ rất rõ các sự kiện, con số và chi tiết cụ thể trong quá khứ." },
+      { id: 29, axis: "SN", pole: "N", text: "Đôi khi tôi mải suy nghĩ về ý tưởng trong đầu đến mức bỏ sót chi tiết thực tế trước mắt." },
+      { id: 30, axis: "SN", pole: "S", text: "Tôi thích làm việc với những thứ hữu hình, đo lường được rõ ràng." },
+      { id: 31, axis: "TF", pole: "T", text: "Khi ra quyết định quan trọng, tôi ưu tiên tính logic và khách quan hơn là cảm xúc cá nhân." },
+      { id: 32, axis: "TF", pole: "F", text: "Tôi luôn cân nhắc xem quyết định của mình sẽ ảnh hưởng đến cảm xúc của người khác như thế nào." },
+      { id: 33, axis: "TF", pole: "T", text: "Tôi coi trọng sự thẳng thắn và chính xác hơn là sự khéo léo để giữ hòa khí." },
+      { id: 34, axis: "TF", pole: "F", text: "Tôi dễ đồng cảm và đặt mình vào hoàn cảnh của người khác khi họ gặp khó khăn." },
+      { id: 35, axis: "TF", pole: "T", text: "Trong tranh luận, tôi tập trung tìm ra lỗ hổng lập luận hơn là giữ sự hài hòa." },
+      { id: 36, axis: "TF", pole: "F", text: "Tôi cảm thấy khó chịu khi chứng kiến sự bất hòa hoặc xung đột giữa mọi người." },
+      { id: 37, axis: "TF", pole: "T", text: "Tôi đánh giá một vấn đề dựa trên nguyên tắc công bằng nhất quán cho tất cả mọi người." },
+      { id: 38, axis: "TF", pole: "F", text: "Tôi thường quyết định dựa trên giá trị cá nhân và điều trái tim mách bảo." },
+      { id: 39, axis: "TF", pole: "T", text: "Khi ai đó than phiền, phản xạ đầu tiên của tôi là phân tích nguyên nhân và tìm cách giải quyết." },
+      { id: 40, axis: "TF", pole: "F", text: "Khi ai đó chia sẻ nỗi buồn, tôi ưu tiên lắng nghe và an ủi trước khi đưa ra giải pháp." },
+      { id: 41, axis: "TF", pole: "T", text: "Tôi giữ được cái đầu lạnh và ít bị chi phối bởi cảm xúc trong tình huống căng thẳng." },
+      { id: 42, axis: "TF", pole: "F", text: "Lời khen ngợi và sự ghi nhận về mặt tinh thần tạo động lực rất lớn cho tôi." },
+      { id: 43, axis: "TF", pole: "T", text: "Tôi thích nhận phản hồi trực diện, chỉ thẳng vào điểm cần cải thiện." },
+      { id: 44, axis: "TF", pole: "F", text: "Tôi dễ bị tác động bởi bầu không khí cảm xúc của những người xung quanh." },
+      { id: 45, axis: "TF", pole: "T", text: "Hiệu quả và tính hợp lý là tiêu chí hàng đầu của tôi khi đánh giá một kế hoạch." },
+      { id: 46, axis: "JP", pole: "J", text: "Tôi thích lên kế hoạch chi tiết trước khi bắt tay vào thực hiện công việc." },
+      { id: 47, axis: "JP", pole: "P", text: "Tôi thích giữ mọi lựa chọn mở để có thể linh hoạt thay đổi vào phút chót." },
+      { id: 48, axis: "JP", pole: "J", text: "Tôi cảm thấy thoải mái nhất khi mọi việc đã được quyết định và chốt xong rõ ràng." },
+      { id: 49, axis: "JP", pole: "P", text: "Tôi thường làm việc hiệu quả và bùng nổ ý tưởng nhất khi sát hạn chót (deadline)." },
+      { id: 50, axis: "JP", pole: "J", text: "Tôi có thói quen lập danh sách việc cần làm (to-do list) và hoàn thành đúng tiến độ." },
+      { id: 51, axis: "JP", pole: "P", text: "Tôi dễ bị phân tâm bởi những ý tưởng hoặc cơ hội mới xuất hiện giữa chừng." },
+      { id: 52, axis: "JP", pole: "J", text: "Tôi không thích những thay đổi đột ngột làm xáo trộn lịch trình đã định sẵn." },
+      { id: 53, axis: "JP", pole: "P", text: "Tôi thích sự ngẫu hứng và tự do khám phá hơn là tuân theo quy trình cứng nhắc." },
+      { id: 54, axis: "JP", pole: "J", text: "Tôi thường hoàn thành công việc sớm hơn hạn chót để yên tâm." },
+      { id: 55, axis: "JP", pole: "P", text: "Tôi xem các quy tắc và thời hạn như những gợi ý linh hoạt hơn là khuôn khổ bắt buộc." },
+      { id: 56, axis: "JP", pole: "J", text: "Không gian làm việc và đồ đạc của tôi thường được sắp xếp có tổ chức." },
+      { id: 57, axis: "JP", pole: "P", text: "Tôi thoải mái bắt đầu nhiều dự án cùng lúc dù chưa hoàn tất hẳn dự án trước đó." },
+      { id: 58, axis: "JP", pole: "J", text: "Khi đi du lịch, tôi thích có lịch trình rõ ràng từng ngày." },
+      { id: 59, axis: "JP", pole: "P", text: "Khi đi du lịch, tôi thích đến nơi rồi mới tùy hứng quyết định đi đâu, làm gì." },
+      { id: 60, axis: "JP", pole: "J", text: "Tôi có xu hướng chốt vấn đề nhanh chóng để chuyển sang bước tiếp theo." }
+    ];
+
+    const DIVA_FREQ_OPTIONS = [
+      { val: 0, short: "0", label: "Không bao giờ" },
+      { val: 1, short: "1", label: "Hiếm khi" },
+      { val: 2, short: "2", label: "Thỉnh thoảng" },
+      { val: 3, short: "3", label: "Thường xuyên" },
+      { val: 4, short: "4", label: "Luôn luôn" }
+    ];
+
+    const DIVA_CRITERIA = [
+      {
+        id: "A1", domain: "A", code: "A1",
+        title: "Thường xuyên không chú ý kỹ đến chi tiết hoặc mắc lỗi bất cẩn trong công việc, học tập hay các hoạt động khác.",
+        adultEx: ["Mắc lỗi bất cẩn khi làm việc", "Phải làm rất chậm để tránh sai sót", "Không đọc kỹ hướng dẫn sử dụng/đề bài", "Bỏ sót chi tiết nhỏ", "Mất quá nhiều thời gian để hoàn thành việc đòi hỏi sự tỉ mỉ"],
+        childEx: ["Mắc lỗi bất cẩn trong bài tập ở trường", "Bỏ sót câu hỏi vì không đọc kỹ đề", "Quên làm mặt sau của tờ kiểm tra", "Không kiểm tra lại bài trước khi nộp"]
+      },
+      {
+        id: "A2", domain: "A", code: "A2",
+        title: "Thường xuyên gặp khó khăn trong việc duy trì sự tập trung vào nhiệm vụ hoặc hoạt động giải trí (trừ chủ đề cực kỳ hứng thú).",
+        adultEx: ["Không giữ được sự tập trung lâu", "Dễ bị cuốn theo dòng suy nghĩ liên tưởng của chính mình", "Khó tập trung nghe giảng, họp hoặc trò chuyện dài", "Khó đọc hết một cuốn sách hoặc xem hết một bộ phim", "Nhanh chán"],
+        childEx: ["Khó giữ tập trung khi làm bài tập trên lớp/ở nhà", "Nhanh chán trò chơi hoặc hoạt động (trừ thứ cực kỳ thích)", "Cần người khác tạo cấu trúc rõ ràng mới không xao nhãng"]
+      },
+      {
+        id: "A3", domain: "A", code: "A3",
+        title: "Thường xuyên có vẻ như không lắng nghe khi người khác nói chuyện trực tiếp với bạn.",
+        adultEx: ["Mơ màng hoặc mải bận tâm chuyện khác", "Khó tập trung theo dõi cuộc hội thoại", "Trò chuyện xong không nhớ nội dung vừa nói", "Hay đột ngột đổi chủ đề cuộc nói chuyện"],
+        childEx: ["Không nhớ bố mẹ hoặc thầy cô vừa dặn gì", "Tâm trí như đang ở nơi khác dù không có gì gây nhiễu", "Chỉ lắng nghe khi có giao tiếp mắt trực tiếp hoặc bị gọi lớn tiếng"]
+      },
+      {
+        id: "A4", domain: "A", code: "A4",
+        title: "Thường xuyên không làm theo hết hướng dẫn và không hoàn thành trọn vẹn công việc, bài tập hay nhiệm vụ.",
+        adultEx: ["Làm nhiều việc chồng chéo cùng lúc nhưng không xong việc nào", "Bắt đầu hào hứng nhưng nhanh mất tập trung và rẽ ngang", "Cần áp lực hạn chót (deadline) mới hoàn thành được", "Khó hoàn tất các thủ tục hành chính, giấy tờ"],
+        childEx: ["Khó làm theo các hướng dẫn có nhiều bước", "Bỏ dở bài tập hoặc việc nhà giữa chừng", "Cần người lớn giám sát sát sao mới làm xong"]
+      },
+      {
+        id: "A5", domain: "A", code: "A5",
+        title: "Thường xuyên gặp khó khăn trong việc sắp xếp, tổ chức công việc và các hoạt động.",
+        adultEx: ["Khó lập kế hoạch sinh hoạt hoặc công việc tuần tự", "Nhà cửa, bàn làm việc hoặc tệp dữ liệu bừa bộn", "Lên lịch quá dày hoặc đặt trùng lịch (double-booking)", "Cảm nhận thời gian kém, hay trễ giờ / trễ hạn", "Tạo sổ kế hoạch nhưng không duy trì sử dụng"],
+        childEx: ["Phòng riêng và bàn học lộn xộn", "Khó tự chuẩn bị đồ đạc để đi học đúng giờ", "Làm việc thiếu trình tự, lúng túng khi tự sắp xếp"]
+      },
+      {
+        id: "A6", domain: "A", code: "A6",
+        title: "Thường xuyên né tránh, không thích hoặc miễn cưỡng làm những việc đòi hỏi nỗ lực trí óc bền bỉ.",
+        adultEx: ["Làm việc dễ hoặc thú vị trước, trì hoãn việc khó/nhàm chán", "Trì hoãn kéo dài đến mức trễ deadline", "Né tránh công việc đơn điệu như nhập liệu, viết báo cáo, điền biểu mẫu, đọc tài liệu dài"],
+        childEx: ["Né tránh hoặc ghét làm bài tập về nhà", "Ngại đọc sách vì tốn nhiều nỗ lực tập trung", "Sợ các môn học đòi hỏi sự tập trung cao độ"]
+      },
+      {
+        id: "A7", domain: "A", code: "A7",
+        title: "Thường xuyên làm mất hoặc để thất lạc những vật dụng cần thiết cho công việc và sinh hoạt.",
+        adultEx: ["Hay thất lạc điện thoại, ví tiền, chìa khóa, kính, thẻ, tài liệu", "Mất nhiều thời gian tìm kiếm đồ đạc", "Cất đồ nhầm chỗ", "Dễ hoảng loạn nếu người khác dọn dẹp hoặc xê dịch đồ của mình"],
+        childEx: ["Hay làm mất bút, thước, sách vở, dụng cụ học tập", "Để quên áo khoác hoặc đồ dùng ở trường/nhà bạn", "Thường xuyên bị nhắc nhở vì làm mất đồ"]
+      },
+      {
+        id: "A8", domain: "A", code: "A8",
+        title: "Thường xuyên dễ bị phân tâm bởi các kích thích bên ngoài (tiếng ồn, chuyển động, cuộc trò chuyện xung quanh).",
+        adultEx: ["Khó tách mình khỏi các kích thích bên ngoài", "Bị cuốn vào cuộc trò chuyện của người khác ở gần", "Khó lọc bỏ thông tin nhiễu", "Sau khi bị phân tâm rất khó quay lại mạch công việc đang làm"],
+        childEx: ["Trong lớp hay nhìn ra ngoài cửa sổ", "Dễ bị phân tâm bởi tiếng động nhỏ hoặc chuyển động xung quanh", "Khó nối lại mạch tập trung sau khi bị ngắt quãng"]
+      },
+      {
+        id: "A9", domain: "A", code: "A9",
+        title: "Thường xuyên hay quên trong các hoạt động sinh hoạt hàng ngày.",
+        adultEx: ["Quên lịch hẹn hoặc các nghĩa vụ đã hứa", "Quên thanh toán hóa đơn, quên gọi lại/trả lời tin nhắn", "Phải quay về nhà lấy đồ bỏ quên", "Đang làm dở việc thì quên mất mình định làm gì", "Phải dùng danh sách ghi chú dày đặc mới không quên"],
+        childEx: ["Quên mang sách vở/đồ dùng đến trường", "Quên lời dặn của bố mẹ hoặc việc vặt được giao", "Phải được nhắc đi nhắc lại nhiều lần mỗi ngày"]
+      },
+      {
+        id: "HI1", domain: "HI", code: "H/I 1",
+        title: "Thường xuyên cựa quậy, rung chân, gõ tay hoặc vặn vẹo người trên ghế ngồi.",
+        adultEx: ["Khó ngồi yên một tư thế", "Rung chân, xoay bút, nghịch đồ vật nhỏ trên tay", "Sờ tóc, cắn móng tay hoặc bóc da tay", "Có thể kìm nén sự bồn chồn nhưng cảm thấy căng thẳng bên trong"],
+        childEx: ["Bố mẹ/thầy cô hay nhắc 'ngồi yên đi'", "Rung chân, nghịch bút, xoay người liên tục trên ghế", "Không thể ngồi thư giãn thoải mái"]
+      },
+      {
+        id: "HI2", domain: "HI", code: "H/I 2",
+        title: "Thường xuyên rời khỏi chỗ ngồi trong những tình huống được kỳ vọng là phải ngồi yên.",
+        adultEx: ["Hay đứng dậy đi lại trong văn phòng/nơi làm việc", "Ngại tham dự hội thảo, bài giảng dài vì phải ngồi một chỗ", "Thích đi lại hơn ngồi yên", "Tìm cớ đứng lên ra ngoài để giải tỏa cảm giác bức bối"],
+        childEx: ["Hay đứng dậy trong giờ ăn hoặc rời chỗ ngồi trong lớp", "Rất khó ngồi yên suốt một tiết học"]
+      },
+      {
+        id: "HI3", domain: "HI", code: "H/I 3",
+        title: "Thường xuyên cảm thấy bồn chồn, bứt rứt bên trong (hoặc chạy nhảy, leo trèo ở trẻ nhỏ).",
+        adultEx: ["Cảm giác bồn chồn, xáo trộn ở bên trong cơ thể/tâm trí", "Luôn thấy mình phải làm một việc gì đó", "Rất khó để thực sự thư giãn hoàn toàn"],
+        childEx: ["Chạy nhảy, leo trèo lên đồ đạc hoặc cây cối ở nơi không phù hợp", "Luôn cảm thấy bứt rứt trong người"]
+      },
+      {
+        id: "HI4", domain: "HI", code: "H/I 4",
+        title: "Thường xuyên gặp khó khăn khi tham gia các hoạt động giải trí một cách yên lặng.",
+        adultEx: ["Nói chuyện trong những lúc cần giữ yên lặng", "Dễ nói to hoặc phấn khích quá mức ở nơi công cộng", "Khó duy trì các hoạt động thư giãn tĩnh lặng"],
+        childEx: ["Nói to khi chơi hoặc trong lớp học", "Không thể ngồi xem TV hoặc phim một cách yên lặng"]
+      },
+      {
+        id: "HI5", domain: "HI", code: "H/I 5",
+        title: "Thường xuyên trong trạng thái 'luôn chuyển động' hoặc hành động như thể 'được gắn động cơ'.",
+        adultEx: ["Luôn bận rộn làm một việc gì đó", "Khó chịu khi phải ngồi yên lâu (ở nhà hàng, cuộc họp)", "Người khác thấy bạn quá nhiều năng lượng hoặc khó theo kịp", "Hay vượt quá giới hạn sức lực, khó buông công việc xuống"],
+        childEx: ["Hoạt động liên tục không ngừng nghỉ ở trường và ở nhà", "Nhiều năng lượng đến mức người xung quanh mệt theo"]
+      },
+      {
+        id: "HI6", domain: "HI", code: "H/I 6",
+        title: "Thường xuyên nói quá nhiều.",
+        adultEx: ["Nói liên tục khiến người nghe cảm thấy mệt", "Khó dừng lại khi đã bắt đầu nói về một chủ đề", "Không chừa khoảng trống cho người khác xen vào", "Dùng rất nhiều từ ngữ để diễn đạt một ý"],
+        childEx: ["Được biết đến là 'cây nói' / nói liến thoắng", "Thầy cô và bố mẹ thường xuyên nhắc giữ trật tự", "Từng bị phê bình trong học bạ vì nói chuyện riêng quá nhiều"]
+      },
+      {
+        id: "HI7", domain: "HI", code: "H/I 7",
+        title: "Thường xuyên buột miệng trả lời trước khi câu hỏi được đặt xong.",
+        adultEx: ["Nghĩ gì nói nấy, thiếu lọc trước khi phát ngôn", "Trả lời ngay khi người khác chưa nói hết câu", "Hay nói nốt câu hộ người khác", "Đôi khi bị nhận xét là thẳng thắn quá mức / thiếu tế nhị"],
+        childEx: ["Luôn muốn là người đầu tiên giơ tay trả lời dù chưa nghĩ kỹ", "Buột miệng nói ra câu trả lời trước khi giáo viên hỏi xong"]
+      },
+      {
+        id: "HI8", domain: "HI", code: "H/I 8",
+        title: "Thường xuyên gặp khó khăn khi phải chờ đợi đến lượt của mình.",
+        adultEx: ["Khó kiên nhẫn khi xếp hàng hoặc chờ tắc đường", "Thiếu kiên nhẫn nói chung trong sinh hoạt", "Bắt đầu hoặc kết thúc công việc/mối quan hệ nhanh chóng vì thiếu kiên nhẫn"],
+        childEx: ["Khó chờ đến lượt trong trò chơi nhóm hoặc trên lớp", "Luôn muốn là người hành động hoặc phát biểu đầu tiên"]
+      },
+      {
+        id: "HI9", domain: "HI", code: "H/I 9",
+        title: "Thường xuyên ngắt lời hoặc xen ngang vào việc của người khác.",
+        adultEx: ["Nhanh chóng can thiệp vào việc của người khác", "Xen ngang cuộc trò chuyện hoặc làm gián đoạn việc người khác đang làm", "Khó giữ ranh giới cá nhân", "Có ý kiến về mọi thứ và bày tỏ ngay lập tức"],
+        childEx: ["Xen ngang vào trò chơi hoặc cuộc nói chuyện của bạn", "Tự ý dùng đồ của người khác mà chưa xin phép", "Phản ứng tức thì với mọi thứ xung quanh"]
+      }
+    ];
+
+    const DIVA_IMPAIRMENT_DOMAINS = [
+      {
+        id: "work", name: "Công việc & Học tập",
+        adultHint: "Làm việc dưới năng lực, nhảy việc do nhanh chán, khó khăn việc hành chính/lập kế hoạch, hay trễ hạn.",
+        childHint: "Điểm số thấp hơn tiềm năng, mất nhiều thời gian làm bài tập, giáo viên nhận xét thiếu tập trung."
+      },
+      {
+        id: "relationship", name: "Quan hệ tình cảm & Gia đình",
+        adultHint: "Nhanh chán, mâu thuẫn do hay quên hoặc lơ đễnh khi nghe, khó quản lý việc nhà/tài chính.",
+        childHint: "Hay cãi vã với anh chị em, cần bố mẹ nhắc nhở cấu trúc sinh hoạt lâu hơn bạn cùng tuổi."
+      },
+      {
+        id: "social", name: "Giao tiếp & Kết nối xã hội",
+        adultHint: "Nhanh kiệt sức khi giao tiếp xã hội, quên giữ liên lạc (nhắn tin/hỏi thăm), lỡ lời ngắt ngang.",
+        childHint: "Khó hòa nhập nhóm bạn, ít bạn thân hoặc từng bị trêu chọc / tách khỏi nhóm."
+      },
+      {
+        id: "leisure", name: "Thời gian rảnh & Sở thích",
+        adultHint: "Khó thư giãn thực sự khi rảnh, không đọc hết sách/xem hết phim, liên tục bận rộn đến kiệt sức.",
+        childHint: "Nhanh chán trò chơi, khó chơi yên tĩnh, dễ gặp chấn thương nhẹ do hiếu động."
+      },
+      {
+        id: "self", name: "Sự tự tin & Hình ảnh bản thân",
+        adultHint: "Tự ti do bị phê bình, sợ thất bại khi bắt đầu việc mới, phản ứng cảm xúc mạnh trước chỉ trích, cầu toàn quá mức.",
+        childHint: "Tự ti vì hay bị trách mắng, nhạy cảm quá mức với lời chê, sợ mắc lỗi."
+      }
+    ];
+
+    const MIGDAS_PILLARS = [
+      {
+        key: "interests",
+        title: "Trụ cột 1: Sở thích chuyên sâu & Khả năng đắm chìm (Hyperfocus / Monotropism)",
+        items: [
+          { id: 1, text: "Khi đắm chìm vào chủ đề hoặc hoạt động yêu thích, tôi rất khó dừng lại để chuyển sang việc khác (kể cả ăn, ngủ hay công việc)." },
+          { id: 2, text: "Việc theo đuổi sở thích đặc thù giúp tôi tự trấn an cảm xúc và gạt bỏ những suy nghĩ căng thẳng, khó chịu." },
+          { id: 3, text: "Ngay cả khi không trực tiếp thực hiện, tâm trí tôi vẫn liên tục suy nghĩ về các chi tiết liên quan đến chủ đề yêu thích đó." },
+          { id: 4, text: "Người thân hoặc bạn bè từng nhận xét rằng tôi dành quá nhiều thời gian hoặc nói quá sâu về chủ đề yêu thích của mình." },
+          { id: 5, text: "Từ thời thơ ấu, tôi đã có những mối quan tâm say mê đặc biệt hoặc thích lặp đi lặp lại một hoạt động trong thời gian dài." }
+        ]
+      },
+      {
+        key: "sensory",
+        title: "Trụ cột 2: Xử lý & Nhạy cảm Giác quan (Sensory Processing)",
+        items: [
+          { id: 6, text: "Tôi thường phát hiện ra những chi tiết thị giác rất nhỏ mà người khác bỏ qua, và nhận ra ngay nếu ai đó xê dịch đồ vật trong không gian của mình." },
+          { id: 7, text: "Một số âm thanh (tiếng ồn nền, tiếng nhai, tiếng tích tắc, đám đông) khiến tôi khó chịu, phân tâm hoặc quá tải rõ rệt." },
+          { id: 8, text: "Tôi nhạy cảm với mùi hương hoặc kén kết cấu thức ăn (texture), cảm thấy khó chịu khi các món ăn chạm hoặc trộn lẫn vào nhau." },
+          { id: 9, text: "Tôi nhạy cảm với chất liệu quần áo, nhãn mác (tags), đường may tất, hoặc các kiểu chạm nhẹ bất ngờ trên da." },
+          { id: 10, text: "Tôi thấy khó chịu khi người khác đứng quá gần ranh giới cơ thể mình, hoặc đặc biệt dễ chịu với cảm giác áp lực sâu (chăn nặng, ôm chặt)." }
+        ]
+      },
+      {
+        key: "routine",
+        title: "Trụ cột 3: Nhu cầu Trật tự & Phản ứng trước Thay đổi Bất ngờ",
+        items: [
+          { id: 11, text: "Tôi cảm thấy căng thẳng hoặc bực bội mạnh khi đang tập trung vào việc yêu thích thì bị người khác ngắt quãng đột ngột." },
+          { id: 12, text: "Những thay đổi bất ngờ làm xáo trộn lịch trình hoặc thói quen quen thuộc khiến tôi khó thích nghi và mất nhiều năng lượng xử lý." },
+          { id: 13, text: "Việc được báo trước về các thay đổi giúp tôi giữ bình tĩnh và chuẩn bị tâm lý tốt hơn hẳn." },
+          { id: 14, text: "Tôi có những trình tự sinh hoạt cố định (về ăn uống, giấc ngủ, cách sắp xếp) mà nếu bị phá vỡ sẽ khiến tôi bất an." },
+          { id: 15, text: "Mức độ nhạy cảm giác quan và nhu cầu trật tự của tôi có ảnh hưởng đáng kể đến sinh hoạt hoặc chất lượng sống hàng ngày." }
+        ]
+      },
+      {
+        key: "communication",
+        title: "Trụ cột 4: Ngôn ngữ & Phong cách Tương tác Xã hội",
+        items: [
+          { id: 16, text: "Tôi là người suy nghĩ cẩn trọng — cần thêm một chút thời gian xử lý thông tin trong đầu trước khi trả lời trong cuộc hội thoại." },
+          { id: 17, text: "Tôi thường cảm thấy mệt mỏi hoặc kiệt sức sau khi phải lắng nghe và duy trì các cuộc trò chuyện xã giao." },
+          { id: 18, text: "Tôi thích người khác giao tiếp thẳng thắn, rõ nghĩa đen hơn là dùng cách nói vòng vo, ẩn dụ khó đoán." },
+          { id: 19, text: "Tôi hay lặp lại một số cụm từ quen thuộc hoặc trích dẫn trực tiếp câu thoại từ phim/sách trong lúc trò chuyện." },
+          { id: 20, text: "So với những người xung quanh, nhu cầu được ở một mình của tôi lớn hơn rõ rệt, và tôi chỉ kết nối sâu với một nhóm rất nhỏ." }
+        ]
+      },
+      {
+        key: "regulation",
+        title: "Trụ cột 5: Điều tiết Cảm xúc & Hành vi Tự trấn an (Stimming)",
+        items: [
+          { id: 21, text: "Tôi thường dùng các chuyển động hoặc hành vi lặp lại để tự điều tiết và thư giãn (rung chân, bóc da/vải, đi đi lại lại, căng cơ)." },
+          { id: 22, text: "Tôi thường nghe đi nghe lại một bài hát hoặc xem lại nội dung quen thuộc nhiều lần vì sự lặp lại mang lại cảm giác an toàn." },
+          { id: 23, text: "Khi căng thẳng hoặc quá tải kích thích lên cao, tôi dễ rơi vào trạng thái bùng nổ cáu gắt hoặc đóng băng/rút lui hoàn toàn." },
+          { id: 24, text: "Từ nhỏ đến lớn, tôi gặp khó khăn trong việc giải tỏa sự bực bội nếu không có không gian riêng hoặc hoạt động trấn an quen thuộc." },
+          { id: 25, text: "Tôi thường cảm thấy bộ não của mình vận hành theo một 'phong cách riêng' (brain style) khác biệt so với số đông xung quanh." }
+        ]
+      }
+    ];
+
+    const SENSORY_CHANNELS = [
+      { id: "visual", name: "Thị giác & Chi tiết", desc: "Ánh sáng chói, chi tiết nhỏ, nhận ra đồ vật bị xê dịch" },
+      { id: "auditory", name: "Thính giác & Tiếng ồn", desc: "Tiếng ồn nền, tiếng nhai, nhiều người nói cùng lúc" },
+      { id: "olfactory", name: "Khứu giác & Mùi hương", desc: "Mùi nước hoa, hóa chất, mùi thức ăn nồng" },
+      { id: "taste", name: "Vị giác & Kết cấu ăn", desc: "Kén kết cấu thức ăn, không thích món ăn trộn lẫn" },
+      { id: "tactile", name: "Xúc giác & Quần áo", desc: "Nhãn mác áo, đường may tất, chạm nhẹ bất ngờ" },
+      { id: "proprioceptive", name: "Ranh giới cơ thể", desc: "Khó chịu nơi đông người, thích chăn nặng / áp lực sâu" },
+      { id: "sleep", name: "Giấc ngủ & Nhịp sinh học", desc: "Khó vào giấc, tỉnh giấc đêm, lệch pha ngủ muộn" },
+      { id: "pain", name: "Ngưỡng chịu đau", desc: "Chịu đau rất cao (ít để ý vết thương) hoặc rất thấp" }
+    ];
+
+    const PHQ9_ITEMS = [
+      "Ít hứng thú hoặc không tìm thấy niềm vui trong khi làm mọi việc.",
+      "Cảm thấy buồn bã, chán nản hoặc tuyệt vọng.",
+      "Khó đi vào giấc ngủ, ngủ không yên giấc, hoặc ngủ quá nhiều.",
+      "Cảm thấy mệt mỏi hoặc có ít năng lượng.",
+      "Chán ăn hoặc ăn quá nhiều.",
+      "Cảm thấy tồi tệ về bản thân — hoặc thấy mình là người thất bại, làm bản thân/gia đình thất vọng.",
+      "Khó tập trung vào các việc như đọc báo hoặc xem truyền hình.",
+      "Di chuyển hoặc nói năng chậm chạp đến mức người khác nhận ra; hoặc ngược lại bồn chồn, đứng ngồi không yên.",
+      "Có suy nghĩ rằng thà chết đi còn hơn hoặc muốn tự làm tổn thương bản thân theo cách nào đó."
+    ];
+
+    const GAD7_ITEMS = [
+      "Cảm thấy bồn chồn, lo lắng hoặc căng thẳng như dây đàn.",
+      "Không thể ngừng lo lắng hoặc không kiểm soát được sự lo âu.",
+      "Lo lắng quá nhiều về nhiều chuyện khác nhau.",
+      "Gặp khó khăn trong việc thư giãn.",
+      "Bồn chồn đến mức khó có thể ngồi yên một chỗ.",
+      "Trở nên dễ bực bội hoặc cáu kỉnh.",
+      "Cảm thấy sợ hãi như thể sắp có điều gì đó tồi tệ xảy ra."
+    ];
+
+    const ISI7_ITEMS = [
+      "Khó đi vào giấc ngủ (trằn trọc lâu mới ngủ được).",
+      "Khó duy trì giấc ngủ (hay tỉnh giấc giữa đêm).",
+      "Thức dậy quá sớm vào buổi sáng và không ngủ lại được.",
+      "Mức độ không hài lòng với giấc ngủ hiện tại của bạn.",
+      "Vấn đề giấc ngủ gây cản trở hoạt động ban ngày (mệt mỏi, giảm tập trung, trí nhớ).",
+      "Người khác nhận thấy chất lượng cuộc sống của bạn bị ảnh hưởng bởi việc thiếu ngủ.",
+      "Bạn cảm thấy lo lắng hoặc bức bối về vấn đề giấc ngủ hiện tại."
+    ];
+
+    const MDQ5_ITEMS = [
+      "Có những giai đoạn kéo dài vài ngày bạn cảm thấy hưng phấn, tràn đầy năng lượng đến mức người khác thấy bạn khác hẳn bình thường.",
+      "Trong những giai đoạn đó, bạn ngủ ít hơn hẳn bình thường (ví dụ chỉ ngủ 3–4 tiếng) mà vẫn không thấy mệt.",
+      "Bạn nói nhanh hơn hoặc suy nghĩ dồn dập, ý tưởng tuôn trào không ngừng trong đầu.",
+      "Bạn bắt tay vào làm rất nhiều dự án, kế hoạch cùng lúc hoặc chi tiêu/quyết định táo bạo hơn hẳn thường lệ.",
+      "Những giai đoạn năng lượng cao đột biến này xảy ra theo từng đợt rõ rệt (khác với trạng thái năng lượng thường ngày của bạn)."
+    ];
+
+    const ECRR12_ITEMS = [
+      { id: 1, dim: "anx", rev: false, text: "Tôi thường lo lắng rằng người thương / người thân thiết không thực sự quan tâm đến tôi nhiều như tôi quan tâm đến họ." },
+      { id: 2, dim: "avo", rev: true,  text: "Tôi cảm thấy thoải mái khi chia sẻ những suy nghĩ và cảm xúc riêng tư sâu kín với người gần gũi." },
+      { id: 3, dim: "anx", rev: false, text: "Tôi hay lo sợ rằng những người quan trọng với mình sẽ rời bỏ hoặc thay lòng." },
+      { id: 4, dim: "avo", rev: false, text: "Tôi cảm thấy không thoải mái khi người khác muốn tiến lại quá gần về mặt cảm xúc với tôi." },
+      { id: 5, dim: "anx", rev: false, text: "Tôi thường cần được người thân thiết trấn an liên tục rằng tôi được trân trọng và yêu quý." },
+      { id: 6, dim: "avo", rev: true,  text: "Tôi thấy dễ dàng dựa vào người thân thiết khi tôi gặp khó khăn hoặc áp lực." },
+      { id: 7, dim: "anx", rev: false, text: "Khi người thân thiết phản hồi chậm hoặc tỏ ra xa cách, tôi dễ suy diễn rằng mình đã làm sai điều gì đó." },
+      { id: 8, dim: "avo", rev: false, text: "Tôi thích tự giải quyết mọi vấn đề một mình hơn là nhờ cậy hay mở lòng với người khác." },
+      { id: 9, dim: "anx", rev: false, text: "Mong muốn được gắn kết sâu sắc của tôi đôi khi khiến người khác cảm thấy choáng ngợp hoặc lùi bước." },
+      { id: 10, dim: "avo", rev: true, text: "Tôi cảm thấy an tâm và tự nhiên khi ở trong một mối quan hệ gắn bó thân mật." },
+      { id: 11, dim: "anx", rev: false, text: "Tôi hay bận tâm về việc so sánh mức độ quan tâm của mình dành cho đối phương với những gì họ dành cho tôi." },
+      { id: 12, dim: "avo", rev: false, text: "Tôi thường giữ một khoảng cách an toàn nhất định để không bị tổn thương hay phụ thuộc cảm xúc vào ai." }
+    ];
+
+    // =========================================================================
+    // 2. APPLICATION STATE
+    // =========================================================================
+
+    const state = {
+      activeTab: "m0",
+      pTestSubTab: "big5",
+      pTestPage: 1,
+      big5Answers: {},
+      mbtiAnswers: {},
+
+      divaFilter: "all",
+      diva: {},
+      divaOnsetBefore12: null,
+      divaOnsetAge: "",
+      divaImpairment: {
+        work: { adult: false, child: false },
+        relationship: { adult: false, child: false },
+        social: { adult: false, child: false },
+        leisure: { adult: false, child: false },
+        self: { adult: false, child: false }
+      },
+      divaCompIQ: false,
+      divaCompStructure: false,
+
+      migdas: {},
+      sensory: {},
+
+      phq9: {},
+      gad7: {},
+
+      isi7: {},
+      mdq5: {},
+
+      ecrr: {}
+    };
+
+    function initEmptyState() {
+      state.pTestSubTab = "big5";
+      state.pTestPage = 1;
+      for (let i = 1; i <= 50; i++) state.big5Answers[i] = null;
+      for (let i = 1; i <= 60; i++) state.mbtiAnswers[i] = null;
+
+      DIVA_CRITERIA.forEach(c => {
+        state.diva[c.id] = { adult: null, child: null, openEx: false, checkedEx: {} };
+      });
+      state.divaOnsetBefore12 = null;
+      state.divaOnsetAge = "";
+      Object.keys(state.divaImpairment).forEach(k => {
+        state.divaImpairment[k] = { adult: false, child: false };
+      });
+      state.divaCompIQ = false;
+      state.divaCompStructure = false;
+
+      for (let i = 1; i <= 25; i++) state.migdas[i] = null;
+      SENSORY_CHANNELS.forEach(ch => { state.sensory[ch.id] = "normal"; });
+
+      for (let i = 0; i < 9; i++) state.phq9[i] = null;
+      for (let i = 0; i < 7; i++) state.gad7[i] = null;
+      for (let i = 0; i < 7; i++) state.isi7[i] = null;
+      for (let i = 0; i < 5; i++) state.mdq5[i] = null;
+      for (let i = 1; i <= 12; i++) state.ecrr[i] = null;
+    }
+
+    initEmptyState();
+
+    // =========================================================================
+    // 3. RENDER FUNCTIONS FOR EACH MODULE
+    // =========================================================================
+
+    function renderPersonalityTestModule() {
+      const isBig5 = state.pTestSubTab === "big5";
+      const items = isBig5 ? BIG5_ITEMS : MBTI_ITEMS;
+      const ansMap = isBig5 ? state.big5Answers : state.mbtiAnswers;
+      const totalPages = isBig5 ? 5 : 6;
+      const page = Math.min(totalPages, Math.max(1, state.pTestPage));
+      state.pTestPage = page;
+
+      const b5Done = Object.values(state.big5Answers).filter(v => v !== null).length;
+      const mbtiDone = Object.values(state.mbtiAnswers).filter(v => v !== null).length;
+
+      const subB5 = document.getElementById("subtab-big5");
+      const subMbti = document.getElementById("subtab-mbti");
+      subB5.className = isBig5
+        ? "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-tealclinical text-white shadow-xs transition cursor-pointer flex items-center gap-2"
+        : "px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white text-ink border border-zinc-200 hover:bg-zinc-100 transition cursor-pointer flex items-center gap-2";
+      subMbti.className = !isBig5
+        ? "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-tealclinical text-white shadow-xs transition cursor-pointer flex items-center gap-2"
+        : "px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white text-ink border border-zinc-200 hover:bg-zinc-100 transition cursor-pointer flex items-center gap-2";
+
+      document.getElementById("badge-sub-big5").textContent = `${b5Done}/50`;
+      document.getElementById("badge-sub-big5").className = isBig5
+        ? "px-2 py-0.5 rounded-md text-[11px] bg-white/20 text-white font-bold"
+        : "px-2 py-0.5 rounded-md text-[11px] bg-zinc-100 text-zinc-700 font-bold";
+      document.getElementById("badge-sub-mbti").textContent = `${mbtiDone}/60`;
+      document.getElementById("badge-sub-mbti").className = !isBig5
+        ? "px-2 py-0.5 rounded-md text-[11px] bg-white/20 text-white font-bold"
+        : "px-2 py-0.5 rounded-md text-[11px] bg-zinc-100 text-zinc-700 font-bold";
+
+      const slice = items.slice((page - 1) * 10, page * 10);
+      const listContainer = document.getElementById("personality-test-list");
+      listContainer.innerHTML = slice.map(it => {
+        const cur = ansMap[it.id];
+        return `
+          <div class="p-3.5 rounded-xl border ${cur !== null ? 'border-tealclinical-border bg-tealclinical-light/20' : 'border-zinc-200 bg-white'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition">
+            <p class="text-sm text-ink leading-snug flex-1">
+              <span class="inline-block w-7 font-bold text-muted">${it.id}.</span>${it.text}
+            </p>
+            <div class="grid grid-cols-5 gap-1.5 shrink-0 sm:w-64">
+              ${[1, 2, 3, 4, 5].map(val => {
+                const sel = cur === val;
+                return `
+                  <button type="button" onclick="setPersonalityScore('${state.pTestSubTab}', ${it.id}, ${val})"
+                    class="radio-pill py-2 rounded-lg border text-xs font-bold cursor-pointer text-center ${sel ? 'bg-tealclinical text-white border-tealclinical shadow-xs' : 'bg-subtle text-ink border-zinc-200 hover:border-tealclinical'}">
+                    ${val}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const pagBar = document.getElementById("personality-pagination-bar");
+      let pagHtml = `
+        <button type="button" onclick="setPersonalityPage(${Math.max(1, page - 1)})" ${page === 1 ? 'disabled' : ''}
+          class="px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-300 bg-white disabled:opacity-40 hover:bg-subtle cursor-pointer">
+          ← Trước
+        </button>
+      `;
+      for (let p = 1; p <= totalPages; p++) {
+        const pageSlice = items.slice((p - 1) * 10, p * 10);
+        const pageCompleted = pageSlice.every(x => ansMap[x.id] !== null);
+        const active = p === page;
+        pagHtml += `
+          <button type="button" onclick="setPersonalityPage(${p})"
+            class="w-8 h-8 rounded-lg text-xs font-bold border transition cursor-pointer ${active ? 'bg-ink text-white border-ink' : pageCompleted ? 'bg-tealclinical-light text-tealclinical border-tealclinical-border' : 'bg-white text-ink border-zinc-300 hover:bg-subtle'}">
+            ${p}
+          </button>
+        `;
+      }
+      pagBar.innerHTML = pagHtml;
+
+      const nextBtn = document.getElementById("btn-ptest-next-step");
+      if (page < totalPages) {
+        nextBtn.textContent = `Trang ${page + 1}/${totalPages} →`;
+      } else if (isBig5) {
+        nextBtn.textContent = "Chuyển sang Phần B: MBTI (60 câu) →";
+      } else {
+        nextBtn.textContent = "Hoàn tất Nhân cách & Sang Mô-đun 2: DIVA-5 →";
+      }
+
+      const pScores = computePersonalityScores();
+      const readoutEl = document.getElementById("m0-live-readout");
+      if (pScores.b5Answered === 0 && pScores.mbtiAnswered === 0) {
+        readoutEl.innerHTML = `Tạm tính: <strong class="text-muted">Chưa có dữ liệu</strong> • Hãy chọn mức điểm (1–5) bên dưới`;
+      } else {
+        readoutEl.innerHTML =
+          `Tạm tính: <strong class="text-tealclinical">${pScores.mbtiAnswered > 0 ? pScores.mbtiCode : '----'}</strong> • O: <strong>${pScores.big5.O}%</strong> | C: <strong>${pScores.big5.C}%</strong> | E: <strong>${pScores.big5.E}%</strong> | A: <strong>${pScores.big5.A}%</strong> | N: <strong>${pScores.big5.N}%</strong>`;
+      }
+    }
+
+    function renderDivaModule() {
+      const container = document.getElementById("diva-criteria-list");
+      const filtered = DIVA_CRITERIA.filter(c => state.divaFilter === "all" || c.domain === state.divaFilter);
+
+      container.innerHTML = filtered.map(c => {
+        const resp = state.diva[c.id];
+        const adultMet = resp.adult !== null && resp.adult >= 3;
+        const childMet = resp.child !== null && resp.child >= 3;
+        const isComplete = resp.adult !== null && resp.child !== null;
+
+        return `
+          <div class="rounded-2xl border ${isComplete ? 'border-zinc-300 bg-white' : 'border-zinc-200 bg-[#FAF9F6]/50'} p-4 sm:p-5 transition">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+              <div class="flex items-start gap-2.5">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ${c.domain === 'A' ? 'bg-tealclinical-light text-tealclinical border border-tealclinical-border' : 'bg-amberwarm-light text-amberwarm border border-amberwarm-border'}">
+                  ${c.code}
+                </span>
+                <p class="text-sm sm:text-base font-semibold text-ink leading-snug">${c.title}</p>
+              </div>
+              <button type="button" onclick="toggleDivaExamples('${c.id}')" class="text-xs font-medium text-tealclinical hover:underline shrink-0 self-end sm:self-start cursor-pointer">
+                ${resp.openEx ? '▲ Ẩn ví dụ DIVA-5' : '▼ Xem ví dụ thực tế'}
+              </button>
+            </div>
+
+            <!-- Dual Timeline 5-Point Rating Grid (Adulthood & Childhood <12yo) -->
+            <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+              <!-- Adulthood Column -->
+              <div class="p-3 rounded-xl bg-subtle/80 border ${adultMet ? 'border-tealclinical bg-tealclinical-light/40' : 'border-zinc-200/80'}">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-ink">Người lớn (Hiện tại ≥ 6 tháng)</span>
+                  ${adultMet ? '<span class="text-[11px] font-bold text-tealclinical">✓ Đạt ngưỡng (≥3)</span>' : ''}
+                </div>
+                <div class="grid grid-cols-5 gap-1.5">
+                  ${DIVA_FREQ_OPTIONS.map(opt => {
+                    const selected = resp.adult === opt.val;
+                    const activeClass = selected
+                      ? (opt.val >= 3 ? 'bg-tealclinical text-white border-tealclinical shadow-xs' : 'bg-ink text-white border-ink shadow-xs')
+                      : 'bg-white text-ink border-zinc-200 hover:border-zinc-400';
+                    return `
+                      <button type="button" onclick="setDivaScore('${c.id}', 'adult', ${opt.val})"
+                        class="radio-pill py-2 px-1 rounded-lg border text-center cursor-pointer flex flex-col items-center justify-center ${activeClass}">
+                        <span class="text-xs font-bold">${opt.short}</span>
+                        <span class="text-[10px] leading-tight mt-0.5 opacity-90 hidden sm:inline">${opt.label}</span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Childhood Column -->
+              <div class="p-3 rounded-xl bg-subtle/80 border ${childMet ? 'border-amberwarm bg-amberwarm-light/40' : 'border-zinc-200/80'}">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-ink">Thời thơ ấu (5 – 12 tuổi)</span>
+                  ${childMet ? '<span class="text-[11px] font-bold text-amberwarm">✓ Đạt ngưỡng (≥3)</span>' : ''}
+                </div>
+                <div class="grid grid-cols-5 gap-1.5">
+                  ${DIVA_FREQ_OPTIONS.map(opt => {
+                    const selected = resp.child === opt.val;
+                    const activeClass = selected
+                      ? (opt.val >= 3 ? 'bg-amberwarm text-white border-amberwarm shadow-xs' : 'bg-ink text-white border-ink shadow-xs')
+                      : 'bg-white text-ink border-zinc-200 hover:border-zinc-400';
+                    return `
+                      <button type="button" onclick="setDivaScore('${c.id}', 'child', ${opt.val})"
+                        class="radio-pill py-2 px-1 rounded-lg border text-center cursor-pointer flex flex-col items-center justify-center ${activeClass}">
+                        <span class="text-xs font-bold">${opt.short}</span>
+                        <span class="text-[10px] leading-tight mt-0.5 opacity-90 hidden sm:inline">${opt.label}</span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Expandable Concrete DIVA-5 Examples -->
+            <div class="${resp.openEx ? 'block' : 'hidden'} mt-3.5 pt-3.5 border-t border-zinc-200 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <p class="font-bold text-tealclinical mb-1.5">Ví dụ hành vi ở Người lớn (tài liệu DIVA-5):</p>
+                <div class="space-y-1.5">
+                  ${c.adultEx.map((ex, idx) => `
+                    <label class="flex items-start gap-2 text-muted hover:text-ink cursor-pointer">
+                      <input type="checkbox" ${resp.checkedEx['a_' + idx] ? 'checked' : ''} onchange="toggleDivaExampleItem('${c.id}', 'a_${idx}')" class="mt-0.5 rounded text-tealclinical" />
+                      <span>${ex}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+              <div>
+                <p class="font-bold text-amberwarm mb-1.5">Ví dụ hành vi Thời thơ ấu &lt;12 tuổi (tài liệu DIVA-5):</p>
+                <div class="space-y-1.5">
+                  ${c.childEx.map((ex, idx) => `
+                    <label class="flex items-start gap-2 text-muted hover:text-ink cursor-pointer">
+                      <input type="checkbox" ${resp.checkedEx['c_' + idx] ? 'checked' : ''} onchange="toggleDivaExampleItem('${c.id}', 'c_${idx}')" class="mt-0.5 rounded text-amberwarm" />
+                      <span>${ex}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Impairment Domains
+      const impContainer = document.getElementById("diva-impairment-list");
+      impContainer.innerHTML = DIVA_IMPAIRMENT_DOMAINS.map(d => {
+        const val = state.divaImpairment[d.id];
+        return `
+          <div class="p-3.5 rounded-xl border border-zinc-200 bg-[#FAF9F6]/70 flex flex-col justify-between gap-2.5">
+            <div>
+              <p class="text-sm font-bold text-ink">${d.name}</p>
+              <p class="text-xs text-muted mt-1"><strong>Người lớn:</strong> ${d.adultHint}</p>
+              <p class="text-xs text-muted mt-0.5"><strong>Thơ ấu:</strong> ${d.childHint}</p>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <button type="button" onclick="toggleDivaImpairment('${d.id}', 'adult')"
+                class="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${val.adult ? 'bg-tealclinical text-white border-tealclinical' : 'bg-white text-ink border-zinc-300 hover:bg-subtle'}">
+                ${val.adult ? '✓ Người lớn: Có ảnh hưởng' : '+ Người lớn'}
+              </button>
+              <button type="button" onclick="toggleDivaImpairment('${d.id}', 'child')"
+                class="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${val.child ? 'bg-amberwarm text-white border-amberwarm' : 'bg-white text-ink border-zinc-300 hover:bg-subtle'}">
+                ${val.child ? '✓ Thơ ấu: Có ảnh hưởng' : '+ Thơ ấu (<12t)'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Sync Criterion B & Compensation checkboxes
+      const btnYes = document.getElementById("btn-onset-yes");
+      const btnNo = document.getElementById("btn-onset-no");
+      const ageWrap = document.getElementById("onset-age-wrapper");
+      btnYes.className = state.divaOnsetBefore12 === true
+        ? "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-tealclinical bg-tealclinical text-white transition cursor-pointer"
+        : "px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border border-zinc-300 bg-white hover:bg-tealclinical-light transition cursor-pointer";
+      btnNo.className = state.divaOnsetBefore12 === false
+        ? "px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-amberwarm bg-amberwarm text-white transition cursor-pointer"
+        : "px-4 py-2 rounded-xl text-xs sm:text-sm font-medium border border-zinc-300 bg-white hover:bg-amberwarm-light transition cursor-pointer";
+      if (state.divaOnsetBefore12 === false) {
+        ageWrap.classList.remove("hidden");
+        ageWrap.classList.add("flex");
+      } else {
+        ageWrap.classList.add("hidden");
+        ageWrap.classList.remove("flex");
+      }
+      document.getElementById("comp-iq").checked = state.divaCompIQ;
+      document.getElementById("comp-structure").checked = state.divaCompStructure;
+    }
+
+    function renderMigdasModule() {
+      const container = document.getElementById("migdas-list");
+      const opts = [
+        { val: 0, label: "0: Không bao giờ" },
+        { val: 1, label: "1: Thỉnh thoảng" },
+        { val: 2, label: "2: Thường xuyên" },
+        { val: 3, label: "3: Luôn luôn" }
+      ];
+
+      container.innerHTML = MIGDAS_PILLARS.map(pillar => `
+        <div class="rounded-2xl border border-zinc-200 p-4 sm:p-5 bg-[#FAF9F6]/60 space-y-3">
+          <h3 class="font-serif text-base sm:text-lg font-bold text-ink pb-2 border-b border-zinc-200">${pillar.title}</h3>
+          <div class="space-y-3">
+            ${pillar.items.map(item => {
+              const cur = state.migdas[item.id];
+              return `
+                <div class="p-3 rounded-xl bg-white border ${cur !== null ? 'border-tealclinical-border' : 'border-zinc-200'} flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <p class="text-sm text-ink leading-snug flex-1">
+                    <span class="font-bold text-tealclinical mr-1.5">${item.id}.</span>${item.text}
+                  </p>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0 md:w-96">
+                    ${opts.map(o => {
+                      const sel = cur === o.val;
+                      return `
+                        <button type="button" onclick="setMigdasScore(${item.id}, ${o.val})"
+                          class="radio-pill py-1.5 px-2 rounded-lg border text-xs font-medium cursor-pointer text-center ${sel ? 'bg-tealclinical text-white border-tealclinical font-semibold' : 'bg-subtle text-ink border-zinc-200 hover:border-tealclinical'}">
+                          ${o.label}
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // Sensory 8 Channels
+      const sGrid = document.getElementById("sensory-grid");
+      sGrid.innerHTML = SENSORY_CHANNELS.map(ch => {
+        const mode = state.sensory[ch.id] || "normal";
+        return `
+          <div class="p-3.5 rounded-xl border ${mode !== 'normal' ? 'border-amberwarm bg-amberwarm-light/30' : 'border-zinc-200 bg-[#FAF9F6]/60'} flex flex-col justify-between gap-2.5">
+            <div>
+              <p class="text-sm font-bold text-ink">${ch.name}</p>
+              <p class="text-xs text-muted mt-0.5">${ch.desc}</p>
+            </div>
+            <div class="grid grid-cols-3 gap-1">
+              <button type="button" onclick="setSensoryStatus('${ch.id}', 'normal')"
+                class="py-1 rounded-lg text-[11px] font-medium border cursor-pointer ${mode === 'normal' ? 'bg-ink text-white border-ink' : 'bg-white text-muted border-zinc-200'}">
+                Bình thường
+              </button>
+              <button type="button" onclick="setSensoryStatus('${ch.id}', 'hyper')"
+                class="py-1 rounded-lg text-[11px] font-semibold border cursor-pointer ${mode === 'hyper' ? 'bg-amberwarm text-white border-amberwarm' : 'bg-white text-ink border-zinc-200'}">
+                Quá nhạy
+              </button>
+              <button type="button" onclick="setSensoryStatus('${ch.id}', 'hypo')"
+                class="py-1 rounded-lg text-[11px] font-semibold border cursor-pointer ${mode === 'hypo' ? 'bg-tealclinical text-white border-tealclinical' : 'bg-white text-ink border-zinc-200'}">
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderDifferentialModule() {
+      const opts4 = [
+        { val: 0, label: "0: Không bao giờ" },
+        { val: 1, label: "1: Vài ngày" },
+        { val: 2, label: "2: > Nửa số ngày" },
+        { val: 3, label: "3: Luôn luôn" }
+      ];
+
+      document.getElementById("phq9-list").innerHTML = PHQ9_ITEMS.map((q, idx) => {
+        const cur = state.phq9[idx];
+        return `
+          <div class="p-3 rounded-xl bg-white border border-zinc-200 space-y-2">
+            <p class="text-xs sm:text-sm text-ink"><span class="font-bold text-muted mr-1">${idx + 1}.</span>${q}</p>
+            <div class="grid grid-cols-4 gap-1.5">
+              ${opts4.map(o => `
+                <button type="button" onclick="setPhqScore(${idx}, ${o.val})"
+                  class="radio-pill py-1.5 px-1 rounded-lg border text-[11px] font-medium cursor-pointer ${cur === o.val ? 'bg-tealclinical text-white border-tealclinical font-semibold' : 'bg-subtle text-ink border-zinc-200 hover:border-tealclinical'}">
+                  ${o.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById("gad7-list").innerHTML = GAD7_ITEMS.map((q, idx) => {
+        const cur = state.gad7[idx];
+        return `
+          <div class="p-3 rounded-xl bg-white border border-zinc-200 space-y-2">
+            <p class="text-xs sm:text-sm text-ink"><span class="font-bold text-muted mr-1">${idx + 1}.</span>${q}</p>
+            <div class="grid grid-cols-4 gap-1.5">
+              ${opts4.map(o => `
+                <button type="button" onclick="setGadScore(${idx}, ${o.val})"
+                  class="radio-pill py-1.5 px-1 rounded-lg border text-[11px] font-medium cursor-pointer ${cur === o.val ? 'bg-amberwarm text-white border-amberwarm font-semibold' : 'bg-subtle text-ink border-zinc-200 hover:border-amberwarm'}">
+                  ${o.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderSleepMoodModule() {
+      const isiOpts = [
+        { val: 0, label: "0: Không" },
+        { val: 1, label: "1: Nhẹ" },
+        { val: 2, label: "2: Vừa" },
+        { val: 3, label: "3: Nặng" },
+        { val: 4, label: "4: Luôn luôn" }
+      ];
+      const mdqOpts = [
+        { val: 0, label: "0: Không bao giờ" },
+        { val: 1, label: "1: Hiếm khi" },
+        { val: 2, label: "2: Thường xuyên" },
+        { val: 3, label: "3: Luôn luôn" }
+      ];
+
+      document.getElementById("isi-list").innerHTML = ISI7_ITEMS.map((q, idx) => {
+        const cur = state.isi7[idx];
+        return `
+          <div class="p-3 rounded-xl bg-white border border-zinc-200 space-y-2">
+            <p class="text-xs sm:text-sm text-ink"><span class="font-bold text-muted mr-1">${idx + 1}.</span>${q}</p>
+            <div class="grid grid-cols-5 gap-1">
+              ${isiOpts.map(o => `
+                <button type="button" onclick="setIsiScore(${idx}, ${o.val})"
+                  class="radio-pill py-1.5 px-1 rounded-lg border text-[11px] font-medium cursor-pointer ${cur === o.val ? 'bg-tealclinical text-white border-tealclinical font-semibold' : 'bg-subtle text-ink border-zinc-200 hover:border-tealclinical'}">
+                  ${o.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById("mdq-list").innerHTML = MDQ5_ITEMS.map((q, idx) => {
+        const cur = state.mdq5[idx];
+        return `
+          <div class="p-3 rounded-xl bg-white border border-zinc-200 space-y-2">
+            <p class="text-xs sm:text-sm text-ink"><span class="font-bold text-muted mr-1">${idx + 1}.</span>${q}</p>
+            <div class="grid grid-cols-4 gap-1.5">
+              ${mdqOpts.map(o => `
+                <button type="button" onclick="setMdqScore(${idx}, ${o.val})"
+                  class="radio-pill py-1.5 px-1 rounded-lg border text-[11px] font-medium cursor-pointer ${cur === o.val ? 'bg-amberwarm text-white border-amberwarm font-semibold' : 'bg-subtle text-ink border-zinc-200 hover:border-amberwarm'}">
+                  ${o.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderModule5() {
+      const pScores = computePersonalityScores();
+      const { ei, sn, tf, jp } = pScores.mbti;
+      document.getElementById("disp-mbti-code").textContent = pScores.mbtiAnswered > 0 ? pScores.mbtiCode : "----";
+      document.getElementById("m5-mbti-progress").textContent = `${pScores.mbtiAnswered}/60`;
+      document.getElementById("m5-b5-progress").textContent = `${pScores.b5Answered}/50`;
+
+      const axes = [
+        { left: `E (${ei}%)`, right: `I (${100 - ei}%)`, pct: ei },
+        { left: `S (${sn}%)`, right: `N (${100 - sn}%)`, pct: sn },
+        { left: `T (${tf}%)`, right: `F (${100 - tf}%)`, pct: tf },
+        { left: `J (${jp}%)`, right: `P (${100 - jp}%)`, pct: jp }
+      ];
+      document.getElementById("disp-mbti-bars").innerHTML = axes.map(a => `
+        <div>
+          <div class="flex justify-between font-medium text-ink mb-0.5">
+            <span>${a.left}</span><span>${a.right}</span>
+          </div>
+          <div class="h-2 bg-zinc-200 rounded-full overflow-hidden flex">
+            <div class="bg-tealclinical h-full" style="width:${a.pct}%"></div>
+            <div class="bg-amberwarm h-full" style="width:${100 - a.pct}%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      const b5 = pScores.big5;
+      const traits = [
+        { label: "Cởi mở (O)", val: b5.O },
+        { label: "Tận tâm (C)", val: b5.C },
+        { label: "Hướng ngoại (E)", val: b5.E },
+        { label: "Dễ chịu (A)", val: b5.A },
+        { label: "Nhạy cảm tâm lý (N)", val: b5.N }
+      ];
+      document.getElementById("disp-big5-bars").innerHTML = traits.map(t => `
+        <div>
+          <div class="flex justify-between font-medium text-ink mb-0.5">
+            <span>${t.label}</span><span>${t.val}%</span>
+          </div>
+          <div class="h-2 bg-zinc-200 rounded-full overflow-hidden">
+            <div class="bg-tealclinical h-full rounded-full" style="width:${t.val}%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      const ecrrOpts = [
+        { val: 1, label: "1: Không bao giờ" },
+        { val: 2, label: "2: Hiếm khi" },
+        { val: 3, label: "3: Thỉnh thoảng" },
+        { val: 4, label: "4: Thường xuyên" },
+        { val: 5, label: "5: Luôn luôn" }
+      ];
+      document.getElementById("ecrr-list").innerHTML = ECRR12_ITEMS.map(item => {
+        const cur = state.ecrr[item.id];
+        return `
+          <div class="p-3.5 rounded-xl border border-zinc-200 bg-[#FAF9F6]/60 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <p class="text-sm text-ink flex-1"><span class="font-bold text-amberwarm mr-1.5">${item.id}.</span>${item.text}</p>
+            <div class="grid grid-cols-5 gap-1.5 shrink-0 lg:w-[430px]">
+              ${ecrrOpts.map(o => `
+                <button type="button" onclick="setEcrrScore(${item.id}, ${o.val})"
+                  class="radio-pill py-1.5 px-1 rounded-lg border text-[11px] font-medium cursor-pointer text-center ${cur === o.val ? 'bg-amberwarm text-white border-amberwarm font-semibold' : 'bg-white text-ink border-zinc-200 hover:border-amberwarm'}">
+                  ${o.label}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // 4. SCORING ENGINE & REPORT SYNTHESIS
+    // =========================================================================
+
+    function computePersonalityScores() {
+      const b5Sums = { O: 0, C: 0, E: 0, A: 0, N: 0 };
+      let b5Answered = 0;
+      BIG5_ITEMS.forEach(item => {
+        const raw = state.big5Answers[item.id];
+        if (raw !== null) b5Answered++;
+        const eff = raw !== null ? raw : 3;
+        const scored = item.dir === 1 ? eff : 6 - eff;
+        b5Sums[item.trait] += scored;
+      });
+      const big5 = {
+        O: Math.round(((b5Sums.O - 10) / 40) * 100),
+        C: Math.round(((b5Sums.C - 10) / 40) * 100),
+        E: Math.round(((b5Sums.E - 10) / 40) * 100),
+        A: Math.round(((b5Sums.A - 10) / 40) * 100),
+        N: Math.round(((b5Sums.N - 10) / 40) * 100)
+      };
+
+      const axisSums = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+      let mbtiAnswered = 0;
+      MBTI_ITEMS.forEach(item => {
+        const raw = state.mbtiAnswers[item.id];
+        if (raw !== null) mbtiAnswered++;
+        const eff = raw !== null ? raw : 3;
+        const firstPole = item.axis[0];
+        const secondPole = item.axis[1];
+        if (item.pole === firstPole) {
+          axisSums[firstPole] += eff;
+          axisSums[secondPole] += 6 - eff;
+        } else {
+          axisSums[secondPole] += eff;
+          axisSums[firstPole] += 6 - eff;
+        }
+      });
+
+      const ei = Math.round((axisSums.E / (axisSums.E + axisSums.I)) * 100);
+      const sn = Math.round((axisSums.S / (axisSums.S + axisSums.N)) * 100);
+      const tf = Math.round((axisSums.T / (axisSums.T + axisSums.F)) * 100);
+      const jp = Math.round((axisSums.J / (axisSums.J + axisSums.P)) * 100);
+
+      const mbtiCode =
+        (ei >= 50 ? "E" : "I") +
+        (sn >= 50 ? "S" : "N") +
+        (tf >= 50 ? "T" : "F") +
+        (jp >= 50 ? "J" : "P");
+
+      return { b5Answered, mbtiAnswered, big5, b5Sums, mbti: { ei, sn, tf, jp }, mbtiCode };
+    }
+
+    function computeAllScores() {
+      const personality = computePersonalityScores();
+
+      // 1. DIVA-5
+      let adultA = 0, childA = 0, adultHI = 0, childHI = 0, divaAnswered = 0;
+      DIVA_CRITERIA.forEach(c => {
+        const r = state.diva[c.id];
+        if (r.adult !== null || r.child !== null) divaAnswered++;
+        if (c.domain === "A") {
+          if (r.adult !== null && r.adult >= 3) adultA++;
+          if (r.child !== null && r.child >= 3) childA++;
+        } else {
+          if (r.adult !== null && r.adult >= 3) adultHI++;
+          if (r.child !== null && r.child >= 3) childHI++;
+        }
+      });
+
+      const adultImpCount = Object.values(state.divaImpairment).filter(v => v.adult).length;
+      const childImpCount = Object.values(state.divaImpairment).filter(v => v.child).length;
+      const childhoodMet = childA >= 3 || childHI >= 3 || state.divaOnsetBefore12 === true;
+      const adultThresholdMet = adultA >= 5 || adultHI >= 5;
+
+      let divaClassification = "Chưa đủ dữ liệu đánh giá DIVA-5";
+      if (divaAnswered > 0) {
+        if (adultThresholdMet && childhoodMet && adultImpCount >= 2) {
+          if (adultA >= 5 && adultHI >= 5) {
+            divaClassification = "Đạt ngưỡng DSM-5: Thể Kết hợp (Combined Presentation — 314.01)";
+          } else if (adultA >= 5) {
+            divaClassification = "Đạt ngưỡng DSM-5: Thể Giảm chú ý ưu thế (Predominantly Inattentive — 314.00)";
+          } else {
+            divaClassification = "Đạt ngưỡng DSM-5: Thể Tăng động / Bốc đồng ưu thế (314.01)";
+          }
+        } else if (adultThresholdMet && (!childhoodMet || adultImpCount < 2)) {
+          divaClassification = "Chỉ báo triệu chứng ADHD trưởng thành rõ rệt (cần đối chiếu thêm mốc <12 tuổi / số lĩnh vực ảnh hưởng)";
+        } else if (adultA >= 3 || adultHI >= 3) {
+          divaClassification = "Dưới ngưỡng DSM-5 / Có nét đặc trưng ADHD (lưu ý khả năng bù trừ bằng IQ hoặc cấu trúc)";
+        } else {
+          divaClassification = "Không ghi nhận chỉ báo ADHD đáng kể trên DIVA-5";
+        }
+      }
+
+      // 2. MIGDAS-2
+      const migdasPillars = {};
+      let migdasTotal = 0, migdasAnswered = 0;
+      MIGDAS_PILLARS.forEach(p => {
+        let sum = 0;
+        p.items.forEach(it => {
+          const val = state.migdas[it.id];
+          if (val !== null) {
+            sum += val;
+            migdasAnswered++;
+          }
+        });
+        migdasPillars[p.key] = sum;
+        migdasTotal += sum;
+      });
+
+      let migdasLabel = "Mức nền thông thường";
+      if (migdasTotal >= 55) migdasLabel = "Chỉ báo rất cao đặc trưng Phổ Tự kỷ / Đa dạng thần kinh (MIGDAS-2)";
+      else if (migdasTotal >= 40) migdasLabel = "Chỉ báo rõ rệt đặc điểm Phổ Tự kỷ & Nhạy cảm giác quan";
+      else if (migdasTotal >= 25) migdasLabel = "Có nét nhạy cảm giác quan / đa dạng thần kinh nhẹ";
+
+      const hyperSensory = SENSORY_CHANNELS.filter(c => state.sensory[c.id] === "hyper").map(c => c.name);
+      const hypoSensory = SENSORY_CHANNELS.filter(c => state.sensory[c.id] === "hypo").map(c => c.name);
+
+      // 3. PHQ-9 & GAD-7
+      let phqSum = 0, phqAnswered = 0;
+      for (let i = 0; i < 9; i++) {
+        if (state.phq9[i] !== null) { phqSum += state.phq9[i]; phqAnswered++; }
+      }
+      let phqLevel = "Tối thiểu (0–4)";
+      if (phqSum >= 20) phqLevel = "Nặng (20–27)";
+      else if (phqSum >= 15) phqLevel = "Khá nặng (15–19)";
+      else if (phqSum >= 10) phqLevel = "Trung bình (10–14)";
+      else if (phqSum >= 5) phqLevel = "Nhẹ (5–9)";
+
+      let gadSum = 0, gadAnswered = 0;
+      for (let i = 0; i < 7; i++) {
+        if (state.gad7[i] !== null) { gadSum += state.gad7[i]; gadAnswered++; }
+      }
+      let gadLevel = "Tối thiểu (0–4)";
+      if (gadSum >= 15) gadLevel = "Nặng (15–21)";
+      else if (gadSum >= 10) gadLevel = "Trung bình (10–14)";
+      else if (gadSum >= 5) gadLevel = "Nhẹ (5–9)";
+
+      // 4. ISI-7 & MDQ-5
+      let isiSum = 0, isiAnswered = 0;
+      for (let i = 0; i < 7; i++) {
+        if (state.isi7[i] !== null) { isiSum += state.isi7[i]; isiAnswered++; }
+      }
+      let isiLevel = "Không mất ngủ lâm sàng (0–7)";
+      if (isiSum >= 22) isiLevel = "Mất ngủ mức độ nặng (22–28)";
+      else if (isiSum >= 15) isiLevel = "Mất ngủ mức độ trung bình (15–21)";
+      else if (isiSum >= 8) isiLevel = "Mất ngủ dưới ngưỡng / nhẹ (8–14)";
+
+      let mdqSum = 0, mdqAnswered = 0;
+      for (let i = 0; i < 5; i++) {
+        if (state.mdq5[i] !== null) { mdqSum += state.mdq5[i]; mdqAnswered++; }
+      }
+      let mdqLevel = "Thấp / Ổn định (0–5)";
+      if (mdqSum >= 10) mdqLevel = "Cao — Cần phân biệt dao động khí sắc chu kỳ (10–15)";
+      else if (mdqSum >= 6) mdqLevel = "Trung bình — Có đợt tăng năng lượng (6–9)";
+
+      // 5. ECR-R 12
+      let anxSum = 0, anxCount = 0, avoSum = 0, avoCount = 0;
+      ECRR12_ITEMS.forEach(it => {
+        const raw = state.ecrr[it.id];
+        if (raw !== null) {
+          const val = it.rev ? (6 - raw) : raw;
+          if (it.dim === "anx") { anxSum += val; anxCount++; }
+          else { avoSum += val; avoCount++; }
+        }
+      });
+      const anxAvg = anxCount > 0 ? +(anxSum / anxCount).toFixed(2) : 0;
+      const avoAvg = avoCount > 0 ? +(avoSum / avoCount).toFixed(2) : 0;
+      const ecrrAnswered = anxCount + avoCount;
+
+      let attachStyle = "Chưa hoàn tất thang ECR-R-12";
+      if (ecrrAnswered > 0) {
+        const highAnx = anxAvg >= 3.0;
+        const highAvo = avoAvg >= 3.0;
+        if (!highAnx && !highAvo) attachStyle = "Gắn bó An toàn (Secure)";
+        else if (highAnx && !highAvo) attachStyle = "Gắn bó Lo âu / Bận tâm (Anxious-Preoccupied)";
+        else if (!highAnx && highAvo) attachStyle = "Gắn bó Né tránh / Độc lập (Dismissive-Avoidant)";
+        else attachStyle = "Gắn bó Sợ hãi – Né tránh / Hỗn hợp (Fearful-Avoidant)";
+      }
+
+      const totalAnswered =
+        personality.b5Answered + personality.mbtiAnswered +
+        divaAnswered + migdasAnswered + phqAnswered + gadAnswered + isiAnswered + mdqAnswered + ecrrAnswered;
+
+      return {
+        totalAnswered,
+        totalMax: 193,
+        personality,
+        adultA, childA, adultHI, childHI, divaAnswered, adultImpCount, childImpCount, childhoodMet, adultThresholdMet, divaClassification,
+        migdasPillars, migdasTotal, migdasAnswered, migdasLabel, hyperSensory, hypoSensory,
+        phqSum, phqAnswered, phqLevel,
+        gadSum, gadAnswered, gadLevel,
+        isiSum, isiAnswered, isiLevel,
+        mdqSum, mdqAnswered, mdqLevel,
+        anxAvg, avoAvg, ecrrAnswered, attachStyle
+      };
+    }
+
+    function renderReportDashboard() {
+      const s = computeAllScores();
+      const p = s.personality;
+      const b5 = p.big5;
+      const { ei, sn, tf, jp } = p.mbti;
+
+      // 4 KPI Cards
+      document.getElementById("report-kpi-grid").innerHTML = `
+        <div class="p-4 rounded-xl bg-tealclinical-light/60 border border-tealclinical-border">
+          <p class="text-xs font-semibold text-tealclinical uppercase">DIVA-5 (ADHD Người lớn)</p>
+          <p class="text-lg font-bold text-ink mt-1">A: ${s.adultA}/9 • H/I: ${s.adultHI}/9</p>
+          <p class="text-xs text-muted mt-0.5">Thơ ấu (&lt;12t): A ${s.childA}/9 • H/I ${s.childHI}/9</p>
+        </div>
+        <div class="p-4 rounded-xl bg-amberwarm-light/60 border border-amberwarm-border">
+          <p class="text-xs font-semibold text-amberwarm uppercase">MIGDAS-2 (Phổ Tự kỷ)</p>
+          <p class="text-lg font-bold text-ink mt-1">${s.migdasTotal} / 75 điểm</p>
+          <p class="text-xs text-muted mt-0.5">Kênh quá nhạy cảm: ${s.hyperSensory.length}/8 kênh</p>
+        </div>
+        <div class="p-4 rounded-xl bg-subtle border border-zinc-200">
+          <p class="text-xs font-semibold text-muted uppercase">Khí sắc • Lo âu • Giấc ngủ</p>
+          <p class="text-base font-bold text-ink mt-1">PHQ-9: ${s.phqSum} | GAD-7: ${s.gadSum} | ISI: ${s.isiSum}</p>
+          <p class="text-xs text-muted mt-0.5">MDQ-5 dao động năng lượng: ${s.mdqSum}/15</p>
+        </div>
+        <div class="p-4 rounded-xl bg-subtle border border-zinc-200">
+          <p class="text-xs font-semibold text-muted uppercase">Nhân cách & Gắn bó</p>
+          <p class="text-base font-bold text-ink mt-1">${p.mbtiCode} • ${s.attachStyle.split('(')[0].trim()}</p>
+          <p class="text-xs text-muted mt-0.5">Lo âu: ${s.anxAvg}/5 • Né tránh: ${s.avoAvg}/5</p>
+        </div>
+      `;
+
+      // 1. DIVA-5 Details
+      document.getElementById("rep-diva-badge").textContent = s.adultThresholdMet ? "Đạt ngưỡng triệu chứng" : "Dưới ngưỡng";
+      document.getElementById("rep-diva-details").innerHTML = `
+        <div class="p-3 rounded-xl bg-subtle border border-zinc-200 font-semibold text-ink">${s.divaClassification}</div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="p-2.5 rounded-lg bg-[#FAF9F6] border border-zinc-200">
+            <span class="text-muted">Người lớn (≥6 tháng):</span><br/>
+            <strong class="text-ink">Giảm chú ý ${s.adultA}/9 • Tăng động ${s.adultHI}/9</strong>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#FAF9F6] border border-zinc-200">
+            <span class="text-muted">Thời thơ ấu (5–12 tuổi):</span><br/>
+            <strong class="text-ink">Giảm chú ý ${s.childA}/9 • Tăng động ${s.childHI}/9</strong>
+          </div>
+        </div>
+        <p class="text-xs text-muted">
+          • <strong>Mốc khởi phát &lt;12 tuổi (Tiêu chí B):</strong> ${s.divaOnsetBefore12 === true ? 'Có' : s.divaOnsetBefore12 === false ? 'Không rõ / Muộn hơn (' + (s.divaOnsetAge || '?') + 't)' : 'Chưa chọn'}<br/>
+          • <strong>Lĩnh vực ảnh hưởng (Tiêu chí C/D):</strong> Người lớn ${s.adultImpCount}/5 lĩnh vực • Thơ ấu ${s.childImpCount}/5 lĩnh vực<br/>
+          • <strong>Cơ chế bù trừ:</strong> ${state.divaCompIQ ? 'Bù trừ bằng IQ/tư duy nhanh; ' : ''}${state.divaCompStructure ? 'Bù trừ bằng cấu trúc ngoại cảnh; ' : ''}${(!state.divaCompIQ && !state.divaCompStructure) ? 'Không ghi nhận' : ''}
+        </p>
+      `;
+
+      // 2. MIGDAS-2 Details
+      document.getElementById("rep-migdas-badge").textContent = `${s.migdasTotal} / 75 (${Math.round((s.migdasTotal / 75) * 100)}%)`;
+      const pillarBars = [
+        { name: "Sở thích chuyên sâu", val: s.migdasPillars.interests },
+        { name: "Nhạy cảm giác quan", val: s.migdasPillars.sensory },
+        { name: "Nhu cầu trật tự / lịch trình", val: s.migdasPillars.routine },
+        { name: "Ngôn ngữ & Giao tiếp", val: s.migdasPillars.communication },
+        { name: "Tự điều tiết (Stimming)", val: s.migdasPillars.regulation }
+      ];
+      document.getElementById("rep-migdas-details").innerHTML = `
+        <div class="p-3 rounded-xl bg-subtle border border-zinc-200 font-semibold text-ink">${s.migdasLabel}</div>
+        <div class="space-y-2 text-xs">
+          ${pillarBars.map(pb => `
+            <div>
+              <div class="flex justify-between mb-0.5"><span>${pb.name}</span><strong>${pb.val}/15</strong></div>
+              <div class="h-1.5 bg-zinc-200 rounded-full overflow-hidden"><div class="bg-amberwarm h-full" style="width:${Math.round((pb.val / 15) * 100)}%"></div></div>
+            </div>
+          `).join('')}
+        </div>
+        <p class="text-xs text-muted">
+          • <strong>Kênh quá nhạy cảm:</strong> ${s.hyperSensory.length ? s.hyperSensory.join(', ') : 'Không có'}<br/>
+          • <strong>Kênh tìm kiếm cảm giác:</strong> ${s.hypoSensory.length ? s.hypoSensory.join(', ') : 'Không có'}
+        </p>
+      `;
+
+      // 3. Differential Screeners
+      document.getElementById("rep-differential-details").innerHTML = `
+        <div class="p-3 rounded-xl bg-[#FAF9F6] border border-zinc-200 flex justify-between items-center">
+          <div><p class="font-semibold text-ink">PHQ-9 (Khí sắc / Trầm cảm)</p><p class="text-xs text-muted">${s.phqLevel}</p></div>
+          <span class="font-bold text-sm px-2.5 py-1 rounded-lg bg-white border border-zinc-200">${s.phqSum} / 27</span>
+        </div>
+        <div class="p-3 rounded-xl bg-[#FAF9F6] border border-zinc-200 flex justify-between items-center">
+          <div><p class="font-semibold text-ink">GAD-7 (Lo âu lan tỏa)</p><p class="text-xs text-muted">${s.gadLevel}</p></div>
+          <span class="font-bold text-sm px-2.5 py-1 rounded-lg bg-white border border-zinc-200">${s.gadSum} / 21</span>
+        </div>
+        <div class="p-3 rounded-xl bg-[#FAF9F6] border border-zinc-200 flex justify-between items-center">
+          <div><p class="font-semibold text-ink">ISI-7 (Chỉ số mất ngủ)</p><p class="text-xs text-muted">${s.isiLevel}</p></div>
+          <span class="font-bold text-sm px-2.5 py-1 rounded-lg bg-white border border-zinc-200">${s.isiSum} / 28</span>
+        </div>
+        <div class="p-3 rounded-xl bg-[#FAF9F6] border border-zinc-200 flex justify-between items-center">
+          <div><p class="font-semibold text-ink">MDQ-5 (Dao động hưng cảm nhẹ)</p><p class="text-xs text-muted">${s.mdqLevel}</p></div>
+          <span class="font-bold text-sm px-2.5 py-1 rounded-lg bg-white border border-zinc-200">${s.mdqSum} / 15</span>
+        </div>
+      `;
+
+      // 4. Attachment & Personality
+      document.getElementById("rep-attach-badge").textContent = s.attachStyle;
+      document.getElementById("rep-attachment-details").innerHTML = `
+        <div class="p-3 rounded-xl bg-subtle border border-zinc-200">
+          <p class="font-semibold text-ink">${s.attachStyle}</p>
+          <p class="text-xs text-muted mt-1">Trục Lo âu bị bỏ rơi: <strong>${s.anxAvg} / 5.00</strong> • Trục Né tránh thân mật: <strong>${s.avoAvg} / 5.00</strong></p>
+        </div>
+        <div class="p-3 rounded-xl bg-[#FAF9F6] border border-zinc-200 text-xs space-y-1">
+          <p class="font-bold text-ink">Hồ sơ Nhân cách nền (${p.mbtiCode}):</p>
+          <p class="text-muted">Big Five: Cởi mở (O) <strong>${b5.O}%</strong> • Tận tâm (C) <strong>${b5.C}%</strong> • Hướng ngoại (E) <strong>${b5.E}%</strong> • Dễ chịu (A) <strong>${b5.A}%</strong> • Nhạy cảm tâm lý (N) <strong>${b5.N}%</strong></p>
+        </div>
+      `;
+
+      // Cross-Domain Synthesis Narrative
+      const insights = [];
+      if (s.adultThresholdMet && s.migdasTotal >= 40) {
+        insights.push("<strong>1. Chỉ báo giao thoa AuDHD (DIVA-5 × MIGDAS-2):</strong> Cả hai hệ thống tiêu chí ADHD và Phổ Tự kỷ đều nổi bật đồng thời. Đây là cấu trúc thần kinh thường tạo ra sự giằng co nội tâm: một nửa não bộ khao khát kích thích mới mẻ và dễ chán (ADHD), trong khi nửa còn lại cần sự dự đoán trước, trật tự và không gian an toàn giác quan (MIGDAS-2).");
+      } else if (s.adultThresholdMet) {
+        insights.push("<strong>1. Nổi bật trục Giảm chú ý / Điều hành (DIVA-5):</strong> Các đặc điểm tập trung nghiêng về cơ chế điều hành chú ý của ADHD hơn là đặc điểm phổ tự kỷ.");
+      } else if (s.migdasTotal >= 40) {
+        insights.push("<strong>1. Nổi bật trục Phổ Tự kỷ & Giác quan (MIGDAS-2):</strong> Các khó khăn tập trung hoặc mệt mỏi xã hội có khả năng bắt nguồn từ sự quá tải giác quan và cơ chế tập trung đơn luồng (monotropism).");
+      } else {
+        insights.push("<strong>1. Hồ sơ Đa dạng thần kinh:</strong> Hiện chưa vượt ngưỡng lâm sàng đồng thời trên DIVA-5 và MIGDAS-2; các nét đặc trưng (nếu có) đang ở mức nhẹ hoặc được bù trừ tốt.");
+      }
+
+      if (b5.O >= 70 && b5.A >= 70 && b5.C <= 50) {
+        insights.push(`<strong>2. Tương tác với Nhân cách nền (${p.mbtiCode} • Cởi mở ${b5.O}% • Dễ chịu ${b5.A}% • Tận tâm ${b5.C}%):</strong> Chỉ số Cởi mở cao giúp bạn giàu trí tưởng tượng và khả năng bù trừ sáng tạo, trong khi chỉ số Dễ chịu cao (${b5.A}%) tạo xu hướng 'hòa nhập mềm' (social camouflaging) — cố gắng chiều lòng và giữ hòa khí để che đi sự lúng túng hoặc quá tải bên trong. Chỉ số Tận tâm ở mức vừa phải (${b5.C}%) phản ánh xu hướng làm việc theo cảm hứng thay vì kỷ luật cứng nhắc.`);
+      } else if (p.b5Answered > 0 || p.mbtiAnswered > 0) {
+        insights.push(`<strong>2. Tương tác với Nhân cách nền (${p.mbtiCode} • O ${b5.O}% • C ${b5.C}% • E ${b5.E}% • A ${b5.A}% • N ${b5.N}%):</strong> Cấu trúc nhân cách của bạn định hình cách bạn phản ứng và bù trừ trước áp lực tập trung và kích thích xã hội hàng ngày.`);
+      }
+
+      if (s.ecrrAnswered === 12) {
+        insights.push(`<strong>3. Động lực Gắn bó & Cảm xúc (${s.attachStyle}):</strong> Với điểm Lo âu ${s.anxAvg}/5 và Né tránh ${s.avoAvg}/5, nhu cầu không gian riêng để hồi phục năng lượng giác quan (MIGDAS-2) và sự nhạy cảm với tín hiệu từ chối (RSD trong ADHD) có thể tác động qua lại trong các mối quan hệ thân thiết.`);
+      }
+
+      if (s.phqSum >= 10 || s.gadSum >= 10 || s.isiSum >= 15) {
+        insights.push(`<strong>4. Lưu ý Chẩn đoán Phân biệt (PHQ-9: ${s.phqSum}, GAD-7: ${s.gadSum}, ISI-7: ${s.isiSum}):</strong> Mức độ căng thẳng khí sắc, lo âu hoặc rối loạn giấc ngủ hiện ở ngưỡng trung bình trở lên. Cần đánh giá xem đây là hệ quả kiệt sức thứ phát do phải bù trừ lâu ngày hay là tình trạng đi kèm cần ưu tiên ổn định trước.`);
+      }
+
+      document.getElementById("rep-synthesis-narrative").innerHTML = insights.map(pText => `<p>${pText}</p>`).join('');
+
+      // Standardized Plaintext Export
+      const exportLines = [
+        "=== BÁO CÁO ĐÁNH GIÁ TÂM LÝ & ĐA DẠNG THẦN KINH TOÀN DIỆN ===",
+        `Tiến độ hoàn thành: ${s.totalAnswered}/${s.totalMax} mục`,
+        "",
+        `1. NHÂN CÁCH NỀN (BIG FIVE ${p.b5Answered}/50 & MBTI ${p.mbtiAnswered}/60):`,
+        `- MBTI: ${p.mbtiCode} (E ${ei}% / I ${100 - ei}% | S ${sn}% / N ${100 - sn}% | T ${tf}% / F ${100 - tf}% | J ${jp}% / P ${100 - jp}%)`,
+        `- Big Five: O ${b5.O}% | C ${b5.C}% | E ${b5.E}% | A ${b5.A}% | N ${b5.N}%`,
+        "",
+        "2. DIVA-5 (ADHD HAI GIAI ĐOẠN - DSM-5):",
+        `- Nhận định: ${s.divaClassification}`,
+        `- Người lớn (hiện tại >=6 tháng): Giảm chú ý ${s.adultA}/9 | Tăng động-Bốc đồng ${s.adultHI}/9`,
+        `- Thời thơ ấu (5-12 tuổi): Giảm chú ý ${s.childA}/9 | Tăng động-Bốc đồng ${s.childHI}/9`,
+        `- Khởi phát <12 tuổi (Tiêu chí B): ${s.divaOnsetBefore12 === true ? 'Có' : s.divaOnsetBefore12 === false ? 'Không rõ/Muộn hơn' : 'Chưa chọn'} | Ảnh hưởng: Người lớn ${s.adultImpCount}/5, Thơ ấu ${s.childImpCount}/5 lĩnh vực`,
+        `- Cơ chế bù trừ: IQ/Tư duy=${state.divaCompIQ ? 'Có' : 'Không'}, Cấu trúc ngoại cảnh=${state.divaCompStructure ? 'Có' : 'Không'}`,
+        "",
+        "3. MIGDAS-2 & BẢN ĐỒ GIÁC QUAN (PHỔ TỰ KỶ):",
+        `- Tổng điểm: ${s.migdasTotal}/75 (${s.migdasLabel})`,
+        `- Chi tiết 5 trụ cột: Sở thích chuyên sâu ${s.migdasPillars.interests}/15 | Giác quan ${s.migdasPillars.sensory}/15 | Trật tự/Lịch trình ${s.migdasPillars.routine}/15 | Giao tiếp ${s.migdasPillars.communication}/15 | Tự điều tiết ${s.migdasPillars.regulation}/15`,
+        `- Kênh quá nhạy cảm: ${s.hyperSensory.length ? s.hyperSensory.join(', ') : 'Không'}`,
+        `- Kênh tìm kiếm cảm giác: ${s.hypoSensory.length ? s.hypoSensory.join(', ') : 'Không'}`,
+        "",
+        "4. CHẨN ĐOÁN PHÂN BIỆT & YẾU TỐ ĐI KÈM:",
+        `- PHQ-9 (Khí sắc): ${s.phqSum}/27 — ${s.phqLevel}`,
+        `- GAD-7 (Lo âu): ${s.gadSum}/21 — ${s.gadLevel}`,
+        `- ISI-7 (Giấc ngủ): ${s.isiSum}/28 — ${s.isiLevel}`,
+        `- MDQ-5 (Năng lượng chu kỳ): ${s.mdqSum}/15 — ${s.mdqLevel}`,
+        "",
+        "5. PHONG CÁCH GẮN BÓ (ECR-R-12):",
+        `- Phân loại: ${s.attachStyle} (Trục Lo âu: ${s.anxAvg}/5.00 | Trục Né tránh: ${s.avoAvg}/5.00)`
+      ];
+      document.getElementById("export-textarea").value = exportLines.join("\n");
+    }
+
+    // =========================================================================
+    // 5. EVENT HANDLERS & NAVIGATION
+    // =========================================================================
+
+    function setPersonalitySubTab(sub) {
+      state.pTestSubTab = sub;
+      state.pTestPage = 1;
+      renderPersonalityTestModule();
+    }
+
+    function setPersonalityPage(p) {
+      state.pTestPage = p;
+      renderPersonalityTestModule();
+    }
+
+    function setPersonalityScore(sub, id, val) {
+      if (sub === "big5") state.big5Answers[id] = val;
+      else state.mbtiAnswers[id] = val;
+      updateAll();
+    }
+
+    function handlePersonalityNextStep() {
+      const isBig5 = state.pTestSubTab === "big5";
+      const totalPages = isBig5 ? 5 : 6;
+      if (state.pTestPage < totalPages) {
+        state.pTestPage++;
+        renderPersonalityTestModule();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else if (isBig5) {
+        setPersonalitySubTab("mbti");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        switchTab("m1");
+      }
+    }
+
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      document.querySelectorAll(".module-panel").forEach(el => el.classList.add("hidden"));
+      document.getElementById("panel-" + tabId).classList.remove("hidden");
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        const active = btn.dataset.tab === tabId;
+        btn.className = active
+          ? "tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-tealclinical bg-tealclinical text-white shadow-xs transition cursor-pointer flex items-center gap-2"
+          : "tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium border border-zinc-200 bg-white text-ink hover:bg-subtle transition cursor-pointer flex items-center gap-2";
+      });
+
+      if (tabId === "m6") renderReportDashboard();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setDivaFilter(filter) {
+      state.divaFilter = filter;
+      document.querySelectorAll(".diva-filter-btn").forEach(b => {
+        b.className = "diva-filter-btn px-3 py-1.5 rounded-xl text-xs font-medium bg-subtle text-ink hover:bg-zinc-200 cursor-pointer";
+      });
+      const activeBtn = document.getElementById("diva-filter-" + filter);
+      if (activeBtn) {
+        activeBtn.className = "diva-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-tealclinical text-white cursor-pointer";
+      }
+      renderDivaModule();
+    }
+
+    function setDivaScore(id, period, val) {
+      state.diva[id][period] = val;
+      updateAll();
+    }
+
+    function toggleDivaExamples(id) {
+      state.diva[id].openEx = !state.diva[id].openEx;
+      renderDivaModule();
+    }
+
+    function toggleDivaExampleItem(id, key) {
+      state.diva[id].checkedEx[key] = !state.diva[id].checkedEx[key];
+    }
+
+    function setDivaOnset(val) {
+      state.divaOnsetBefore12 = val;
+      updateAll();
+    }
+
+    function toggleDivaImpairment(domainId, period) {
+      state.divaImpairment[domainId][period] = !state.divaImpairment[domainId][period];
+      updateAll();
+    }
+
+    function setMigdasScore(id, val) {
+      state.migdas[id] = val;
+      updateAll();
+    }
+
+    function setSensoryStatus(chId, status) {
+      state.sensory[chId] = status;
+      updateAll();
+    }
+
+    function setPhqScore(idx, val) {
+      state.phq9[idx] = val;
+      updateAll();
+    }
+
+    function setGadScore(idx, val) {
+      state.gad7[idx] = val;
+      updateAll();
+    }
+
+    function setIsiScore(idx, val) {
+      state.isi7[idx] = val;
+      updateAll();
+    }
+
+    function setMdqScore(idx, val) {
+      state.mdq5[idx] = val;
+      updateAll();
+    }
+
+    function setEcrrScore(id, val) {
+      state.ecrr[id] = val;
+      updateAll();
+    }
+
+    function updateAll() {
+      renderPersonalityTestModule();
+      renderDivaModule();
+      renderMigdasModule();
+      renderDifferentialModule();
+      renderSleepMoodModule();
+      renderModule5();
+
+      const s = computeAllScores();
+      const pct = Math.round((s.totalAnswered / s.totalMax) * 100);
+      document.getElementById("global-progress-bar").style.width = pct + "%";
+      document.getElementById("global-progress-text").textContent = `Tiến độ: ${s.totalAnswered}/${s.totalMax} mục (${pct}%)`;
+
+      document.getElementById("badge-m0").textContent = `${s.personality.b5Answered + s.personality.mbtiAnswered}/110`;
+      document.getElementById("badge-m1").textContent = `${s.divaAnswered}/18`;
+      document.getElementById("badge-m2").textContent = `${s.migdasAnswered}/25`;
+      document.getElementById("badge-m3").textContent = `${s.phqAnswered + s.gadAnswered}/16`;
+      document.getElementById("badge-m4").textContent = `${s.isiAnswered + s.mdqAnswered}/12`;
+      document.getElementById("badge-m5").textContent = `${s.ecrrAnswered}/12`;
+
+      document.getElementById("phq9-live-badge").textContent = `${s.phqSum} / 27`;
+      document.getElementById("gad7-live-badge").textContent = `${s.gadSum} / 21`;
+      document.getElementById("isi-live-badge").textContent = `${s.isiSum} / 28`;
+      document.getElementById("mdq-live-badge").textContent = `${s.mdqSum} / 15`;
+
+      if (state.activeTab === "m6") {
+        renderReportDashboard();
+      }
+    }
+
+    // Sample realistic profile filler for instant preview/testing
+    function fillSampleProfile() {
+      for (let i = 1; i <= 50; i++) state.big5Answers[i] = 3;
+      for (let i = 1; i <= 60; i++) state.mbtiAnswers[i] = 3;
+
+      const sampleAdult = [3, 4, 3, 4, 3, 4, 2, 3, 3, 3, 1, 3, 1, 2, 2, 2, 2, 1];
+      const sampleChild = [3, 3, 3, 3, 2, 3, 2, 3, 2, 2, 1, 2, 1, 1, 2, 2, 1, 1];
+      DIVA_CRITERIA.forEach((c, idx) => {
+        state.diva[c.id].adult = sampleAdult[idx];
+        state.diva[c.id].child = sampleChild[idx];
+      });
+      state.divaOnsetBefore12 = true;
+      state.divaImpairment.work = { adult: true, child: true };
+      state.divaImpairment.leisure = { adult: true, child: false };
+      state.divaImpairment.self = { adult: true, child: true };
+      state.divaCompIQ = true;
+
+      const sampleMigdas = [3, 3, 2, 2, 2, 3, 3, 2, 2, 2, 3, 2, 3, 2, 2, 3, 3, 2, 1, 3, 2, 3, 2, 2, 3];
+      for (let i = 1; i <= 25; i++) state.migdas[i] = sampleMigdas[i - 1];
+      state.sensory.visual = "hyper";
+      state.sensory.auditory = "hyper";
+      state.sensory.tactile = "hyper";
+      state.sensory.proprioceptive = "hypo";
+      state.sensory.sleep = "hyper";
+
+      [1, 1, 2, 2, 1, 1, 2, 1, 0].forEach((v, i) => { state.phq9[i] = v; });
+      [2, 1, 2, 2, 1, 1, 1].forEach((v, i) => { state.gad7[i] = v; });
+      [2, 1, 1, 2, 2, 1, 2].forEach((v, i) => { state.isi7[i] = v; });
+      [1, 1, 2, 1, 1].forEach((v, i) => { state.mdq5[i] = v; });
+      [4, 3, 3, 3, 4, 3, 4, 4, 3, 3, 3, 4].forEach((v, i) => { state.ecrr[i + 1] = v; });
+
+      updateAll();
+      switchTab("m6");
+      showToast("Đã điền mẫu hồ sơ minh họa 8 công cụ & mở Báo cáo Tổng hợp!");
+    }
+
+    // Two-step safe reset (no confirm() dialog)
+    function promptReset() {
+      document.getElementById("btn-reset-init").classList.add("hidden");
+      document.getElementById("reset-confirm-group").classList.remove("hidden");
+      document.getElementById("reset-confirm-group").classList.add("inline-flex");
+    }
+
+    function cancelReset() {
+      document.getElementById("reset-confirm-group").classList.add("hidden");
+      document.getElementById("reset-confirm-group").classList.remove("inline-flex");
+      document.getElementById("btn-reset-init").classList.remove("hidden");
+    }
+
+    function confirmReset() {
+      initEmptyState();
+      cancelReset();
+      updateAll();
+      switchTab("m0");
+      showToast("Đã đặt lại toàn bộ dữ liệu đánh giá về trạng thái trống!");
+    }
+
+    function copyFullReport() {
+      renderReportDashboard();
+      const text = document.getElementById("export-textarea").value;
+      const helper = document.getElementById("clipboard-helper");
+      helper.value = text;
+      helper.select();
+      helper.setSelectionRange(0, 99999);
+      try {
+        document.execCommand("copy");
+        showToast("Đã sao chép toàn bộ báo cáo kết quả vào bộ nhớ tạm!");
+      } catch (err) {
+        showToast("Hãy bôi đen khung văn bản bên dưới và nhấn Ctrl+C / Cmd+C để sao chép.");
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const banner = document.getElementById("toast-banner");
+      document.getElementById("toast-message").textContent = msg;
+      banner.classList.remove("hidden");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add("hidden");
+      }, 3600);
+    }
+
+    // Initial boot
+    updateAll();
+    switchTab("m0");
+  </script>
+</body>
+</html>
